@@ -2,7 +2,7 @@ import type { SeedDay } from "./types";
 
 export const DAY_09: SeedDay = {
   dayNumber: 9,
-  date: "2026-10-09",
+  date: "2026-09-26",
   scriptureBonus: {
     displayText:
       "For I know the thoughts that I think toward you, says Yahweh, thoughts of peace, and not of evil, to give you hope and a future.",

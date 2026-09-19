@@ -2,7 +2,7 @@ import type { SeedDay } from "./types";
 
 export const DAY_07: SeedDay = {
   dayNumber: 7,
-  date: "2026-10-07",
+  date: "2026-09-24",
   scriptureBonus: {
     displayText:
       "Don't you be afraid, for I am with you. Don't be dismayed, for I am your God. I will strengthen you.",
