@@ -204,6 +204,14 @@ export function ResultsScreen({
         <p className="mt-1 text-stone-dark">total points</p>
       </div>
 
+      <button
+        type="button"
+        onClick={handleShare}
+        className="w-full rounded-full bg-indigo px-6 py-4 text-lg font-medium text-parchment transition-colors hover:bg-indigo-dim"
+      >
+        {copied ? "Copied to clipboard" : "Share Results"}
+      </button>
+
       <div className="rounded-2xl border border-gold-soft bg-white/60 p-6 text-center">
         <p className="text-2xl tracking-widest">{grid}</p>
       </div>
@@ -249,23 +257,14 @@ export function ResultsScreen({
         <p className="mt-1 text-xs text-stone">{results.scriptureBonus.translation}</p>
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <button
-          type="button"
-          onClick={handleShare}
-          className="flex-1 rounded-full bg-indigo px-6 py-3 font-medium text-parchment transition-colors hover:bg-indigo-dim"
-        >
-          {copied ? "Copied to clipboard" : "Share spoiler-free result"}
-        </button>
-        <button
-          type="button"
-          onClick={() => setReportOpen((o) => !o)}
-          aria-expanded={reportOpen}
-          className="flex-1 rounded-full border-2 border-stone px-6 py-3 text-center font-medium text-stone-dark transition-colors hover:bg-white/60"
-        >
-          Report a missing answer
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={() => setReportOpen((o) => !o)}
+        aria-expanded={reportOpen}
+        className="w-full rounded-full border-2 border-stone px-6 py-3 text-center font-medium text-stone-dark transition-colors hover:bg-white/60"
+      >
+        Report a missing answer
+      </button>
 
       {reportOpen && (
         <div className="animate-rise-in rounded-2xl border border-stone/30 bg-white/60 p-5">
