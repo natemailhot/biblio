@@ -7,7 +7,6 @@ export type AnswerTier =
   | "veil"
   | "holy-of-holies"
   | "third-heaven";
-export type SessionMode = "timed" | "accessibility";
 export type SubmittedAnswerResult = "accepted" | "invalid";
 
 export type BibleReference = {

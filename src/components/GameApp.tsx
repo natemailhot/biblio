@@ -14,7 +14,6 @@ export function GameApp() {
   const [phase, setPhase] = useState<Phase>("loading");
   const [dailySet, setDailySet] = useState<DailySetSummary | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [accessibilityMode, setAccessibilityMode] = useState(false);
   const [results, setResults] = useState<SessionResults | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -30,16 +29,12 @@ export function GameApp() {
       });
   }, []);
 
-  const handleBegin = async (accessibility: boolean) => {
+  const handleBegin = async () => {
     if (!dailySet) return;
-    setAccessibilityMode(accessibility);
     try {
       const res = await fetchJson<{ sessionId: string }>("/api/sessions", {
         method: "POST",
-        body: JSON.stringify({
-          dailySetId: dailySet.id,
-          mode: accessibility ? "accessibility" : "timed",
-        }),
+        body: JSON.stringify({ dailySetId: dailySet.id, mode: "timed" }),
       });
       setSessionId(res.sessionId);
       setPhase("ascent");
@@ -85,12 +80,7 @@ export function GameApp() {
 
   if (phase === "ascent" && dailySet && sessionId) {
     return (
-      <AscentScreen
-        dailySet={dailySet}
-        sessionId={sessionId}
-        accessibilityMode={accessibilityMode}
-        onAllAnswered={handleAllAnswered}
-      />
+      <AscentScreen dailySet={dailySet} sessionId={sessionId} onAllAnswered={handleAllAnswered} />
     );
   }
 

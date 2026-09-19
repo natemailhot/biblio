@@ -5,7 +5,6 @@ import { createServiceRoleClient } from "@/lib/supabase/server";
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   const dailySetId = body?.dailySetId as string | undefined;
-  const mode = (body?.mode as string | undefined) === "accessibility" ? "accessibility" : "timed";
 
   if (!dailySetId) {
     return NextResponse.json({ error: "dailySetId is required" }, { status: 400 });
@@ -25,7 +24,7 @@ export async function POST(req: NextRequest) {
 
   const { data: session, error: sessionError } = await supabase
     .from("game_sessions")
-    .insert({ daily_set_id: dailySet.id, mode })
+    .insert({ daily_set_id: dailySet.id, mode: "timed" })
     .select("id, started_at")
     .single();
 

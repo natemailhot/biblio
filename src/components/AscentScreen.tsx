@@ -20,7 +20,6 @@ function QuestionRound({
   index,
   total,
   sessionId,
-  accessibilityMode,
   scoreSoFar,
   onAdvance,
 }: {
@@ -28,7 +27,6 @@ function QuestionRound({
   index: number;
   total: number;
   sessionId: string;
-  accessibilityMode: boolean;
   scoreSoFar: number;
   onAdvance: (scoreDelta: number) => void;
 }) {
@@ -89,7 +87,7 @@ function QuestionRound({
   };
 
   useEffect(() => {
-    if (accessibilityMode || finalReveal) return;
+    if (finalReveal) return;
     if (timeLeft <= 0) {
       const id = setTimeout(() => submit("", true), 0);
       return () => clearTimeout(id);
@@ -97,7 +95,7 @@ function QuestionRound({
     const id = setTimeout(() => setTimeLeft((t) => t - 1), 1000);
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timeLeft, accessibilityMode, finalReveal]);
+  }, [timeLeft, finalReveal]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,13 +112,9 @@ function QuestionRound({
         <p className="font-serif-heading text-sm uppercase tracking-[0.2em] text-gold">
           Question {index + 1} of {total}
         </p>
-        {!accessibilityMode ? (
-          <p className="font-serif-heading text-2xl tabular-nums text-indigo" role="timer" aria-live="off">
-            {minutes}:{seconds.toString().padStart(2, "0")}
-          </p>
-        ) : (
-          <p className="text-sm text-stone-dark">Accessibility mode · untimed</p>
-        )}
+        <p className="font-serif-heading text-2xl tabular-nums text-indigo" role="timer" aria-live="off">
+          {minutes}:{seconds.toString().padStart(2, "0")}
+        </p>
       </div>
 
       <h2 className="font-serif-heading text-2xl font-semibold text-ink">{question.prompt}</h2>
@@ -197,12 +191,10 @@ function QuestionRound({
 export function AscentScreen({
   dailySet,
   sessionId,
-  accessibilityMode,
   onAllAnswered,
 }: {
   dailySet: DailySetSummary;
   sessionId: string;
-  accessibilityMode: boolean;
   onAllAnswered: () => void;
 }) {
   const questions = dailySet.questions;
@@ -225,7 +217,6 @@ export function AscentScreen({
       index={index}
       total={questions.length}
       sessionId={sessionId}
-      accessibilityMode={accessibilityMode}
       scoreSoFar={score}
       onAdvance={handleAdvance}
     />

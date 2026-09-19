@@ -22,7 +22,7 @@ export async function POST(
 
   const { data: session, error: sessionError } = await supabase
     .from("game_sessions")
-    .select("id, daily_set_id, mode, completed_at, ascent_score, total_score")
+    .select("id, daily_set_id, completed_at, ascent_score, total_score")
     .eq("id", sessionId)
     .single();
 
@@ -57,7 +57,7 @@ export async function POST(
 
   const isSkip = !rawInput.trim();
 
-  if (!isSkip && session.mode === "timed") {
+  if (!isSkip) {
     const { data: start } = await supabase
       .from("session_question_starts")
       .select("started_at")
