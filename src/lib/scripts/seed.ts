@@ -480,7 +480,6 @@ async function seed() {
       context_note:
         "Psalm 23 uses the image of a shepherd to express trust in God's guidance and care.",
       accepted_book_aliases: ["psalm", "psalms"],
-      bonus_points: 25,
       difficulty: "easy",
       canon_scope: "protestant-66",
     })

@@ -1,4 +1,5 @@
 import type { CanonScope } from "@/lib/types";
+import { normalizeAnswer } from "@/lib/answers/normalize";
 
 // 66-book Protestant canon, in canonical order.
 export const PROTESTANT_66_BOOKS: string[] = [
@@ -39,6 +40,18 @@ export const CATHOLIC_73_BOOKS: string[] = [
   "James", "1 Peter", "2 Peter", "1 John", "2 John",
   "3 John", "Jude", "Revelation",
 ];
+
+const NEW_TESTAMENT_BOOK_COUNT = 27;
+
+// Both canon lists end with the same 27 New Testament books, in the same
+// order, so testament lookup is a simple tail check regardless of canon.
+export function getTestamentForBook(canonScope: CanonScope, book: string): "Old" | "New" | null {
+  const books = getBooksForCanon(canonScope);
+  const normalized = normalizeAnswer(book);
+  const index = books.findIndex((b) => normalizeAnswer(b) === normalized);
+  if (index === -1) return null;
+  return index >= books.length - NEW_TESTAMENT_BOOK_COUNT ? "New" : "Old";
+}
 
 export function getBooksForCanon(canonScope: CanonScope): string[] {
   switch (canonScope) {

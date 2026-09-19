@@ -12,7 +12,7 @@ export async function GET(
   const { data: session, error: sessionError } = await supabase
     .from("game_sessions")
     .select(
-      "id, daily_set_id, ascent_score, scripture_bonus_score, scripture_bonus_correct, total_score, completed_at"
+      "id, daily_set_id, ascent_score, scripture_bonus_multiplier, scripture_bonus_level, scripture_bonus_correct, total_score, completed_at"
     )
     .eq("id", sessionId)
     .single();
@@ -48,7 +48,7 @@ export async function GET(
       .order("submitted_at_ms", { ascending: true }),
     supabase
       .from("scripture_bonus")
-      .select("display_text, book, reference_display, translation, context_note, bonus_points")
+      .select("display_text, book, reference_display, translation, context_note")
       .eq("id", dailySet.scripture_bonus_id)
       .single(),
   ]);
@@ -117,7 +117,8 @@ export async function GET(
     dayNumber: dailySet.day_number,
     totalScore: session.total_score,
     ascentScore: session.ascent_score,
-    scriptureBonusScore: session.scripture_bonus_score,
+    scriptureBonusMultiplier: session.scripture_bonus_multiplier,
+    scriptureBonusLevel: session.scripture_bonus_level,
     scriptureBonusCorrect: session.scripture_bonus_correct,
     questionResults,
     scriptureBonus: {
@@ -126,7 +127,6 @@ export async function GET(
       referenceDisplay: bonusRow.reference_display,
       translation: bonusRow.translation,
       contextNote: bonusRow.context_note,
-      bonusPoints: bonusRow.bonus_points,
     },
   };
 

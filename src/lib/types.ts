@@ -8,6 +8,8 @@ export type AnswerTier =
   | "holy-of-holies"
   | "third-heaven";
 export type SubmittedAnswerResult = "accepted" | "invalid";
+export type ScriptureBonusLevel = "testament" | "book" | "chapter" | "verse";
+export type Testament = "Old" | "New";
 
 export type BibleReference = {
   book: string;
@@ -46,7 +48,6 @@ export type ScriptureBonus = {
   licensingMetadata: string;
   contextNote: string;
   acceptedBookAliases: string[];
-  bonusPoints: number;
   difficulty: "easy" | "medium" | "hard";
   canonScope: CanonScope;
 };
@@ -87,9 +88,16 @@ export type SubmitQuestionAnswerResponse = {
   message: string;
 };
 
+export type SubmitBonusRequest =
+  | { level: "testament"; testament: Testament }
+  | { level: "book"; book: string }
+  | { level: "chapter"; book: string; chapter: number }
+  | { level: "verse"; book: string; chapter: number; verse: number };
+
 export type SubmitBonusResponse = {
   correct: boolean;
-  score: number;
+  level: ScriptureBonusLevel;
+  multiplier: number;
   book: string;
   referenceDisplay: string;
   translation: string;
@@ -128,7 +136,8 @@ export type SessionResults = {
   dayNumber: number;
   totalScore: number;
   ascentScore: number;
-  scriptureBonusScore: number;
+  scriptureBonusMultiplier: number;
+  scriptureBonusLevel: ScriptureBonusLevel | null;
   scriptureBonusCorrect: boolean | null;
   questionResults: QuestionResult[];
   scriptureBonus: {
@@ -137,6 +146,5 @@ export type SessionResults = {
     referenceDisplay: string;
     translation: string;
     contextNote: string;
-    bonusPoints: number;
   };
 };

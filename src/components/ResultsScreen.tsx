@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { BRAND_EMOJI, MISS_EMOJI, TIER_META } from "@/lib/content/tiers";
+import { BONUS_LEVEL_LABELS } from "@/lib/content/scriptureBonusScoring";
 import { TierBadge } from "./TierBadge";
 import type { QuestionResult, RankedAnswer, SessionResults } from "@/lib/types";
 
@@ -106,7 +107,7 @@ export function ResultsScreen({
     "",
     grid,
     "",
-    `Scripture Bonus: ${results.scriptureBonusCorrect ? "✓" : "✗"} +${results.scriptureBonusScore}`,
+    `Scripture Bonus: ${results.scriptureBonusCorrect ? "✓" : "✗"} ×${results.scriptureBonusMultiplier.toFixed(2)}`,
   ].join("\n");
 
   const handleShare = async () => {
@@ -146,9 +147,13 @@ export function ResultsScreen({
         <div className="rounded-xl border border-stone/30 bg-white/60 p-4 text-center">
           <p className="text-sm text-stone-dark">Scripture Bonus</p>
           <p className="font-serif-heading text-2xl font-semibold text-ink">
-            {results.scriptureBonusCorrect ? `+${results.scriptureBonusScore}` : "+0"}
+            ×{results.scriptureBonusMultiplier.toFixed(2)}
           </p>
-          <p className="text-xs text-stone">{results.scriptureBonusCorrect ? "Correct" : "Missed"}</p>
+          <p className="text-xs text-stone">
+            {results.scriptureBonusLevel
+              ? `${results.scriptureBonusCorrect ? "Correct" : "Missed"} · ${BONUS_LEVEL_LABELS[results.scriptureBonusLevel]}`
+              : "Not attempted"}
+          </p>
         </div>
       </div>
 
