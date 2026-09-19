@@ -108,6 +108,8 @@ export function ResultsScreen({
     grid,
     "",
     `Scripture Bonus: ${results.scriptureBonusCorrect === true ? "✓" : results.scriptureBonusCorrect === false ? "✗" : "—"} ×${results.scriptureBonusMultiplier.toFixed(2)}`,
+    "",
+    "dailyascend.io",
   ].join("\n");
 
   const handleShare = async () => {
@@ -189,7 +191,7 @@ export function ResultsScreen({
           {copied ? "Copied to clipboard" : "Share spoiler-free result"}
         </button>
         <a
-          href="mailto:feedback@ascend.example?subject=Missing%20answer%20or%20issue"
+          href="mailto:feedback@dailyascend.io?subject=Missing%20answer%20or%20issue"
           className="flex-1 rounded-full border-2 border-stone px-6 py-3 text-center font-medium text-stone-dark transition-colors hover:bg-white/60"
         >
           Report a missing answer
