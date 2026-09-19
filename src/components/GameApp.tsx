@@ -60,11 +60,24 @@ export function GameApp() {
   const handleBegin = async () => {
     if (!dailySet) return;
     try {
-      const res = await fetchJson<{ sessionId: string }>("/api/sessions", {
+      const res = await fetchJson<{ sessionId: string; alreadyCompleted: boolean }>("/api/sessions", {
         method: "POST",
         body: JSON.stringify({ dailySetId: dailySet.id, mode: "timed" }),
       });
       setSessionId(res.sessionId);
+
+      if (res.alreadyCompleted) {
+        // This identity (account or anon device) already finished today,
+        // just not on this browser's localStorage — go straight to
+        // results instead of starting a round the server would reject.
+        const results = await fetchJson<SessionResults>(`/api/sessions/${res.sessionId}/results`);
+        setResults(results);
+        markSessionCompleted(dailySet.id, res.sessionId);
+        setReturning(true);
+        setPhase("results");
+        return;
+      }
+
       setPhase("ascent");
       track("Ascent Started", { dayNumber: dailySet.dayNumber });
     } catch (err) {
