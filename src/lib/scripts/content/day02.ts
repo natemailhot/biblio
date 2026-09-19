@@ -50,6 +50,15 @@ export const DAY_02: SeedDay = {
           explanation: "Daniel has his own vision of four great beasts rising from the sea.",
         },
         {
+          canonical: "Pharaoh",
+          aliases: [],
+          score: 20,
+          tier: "bronze-altar",
+          references: [{ book: "Genesis", chapterStart: 41, verseStart: 25, verseEnd: 28, display: "Genesis 41:25-28" }],
+          explanation:
+            "Pharaoh dreams of seven fat and seven lean cows; Joseph tells him \"God has shown Pharaoh what he is about to do.\"",
+        },
+        {
           canonical: "Peter",
           aliases: ["simon peter"],
           score: 20,
