@@ -7,9 +7,29 @@
 import { createServiceRoleClient } from "../supabase/server";
 import { normalizeAnswer } from "../answers/normalize";
 import { DAY_01 } from "./content/day01";
+import { DAY_02 } from "./content/day02";
+import { DAY_03 } from "./content/day03";
+import { DAY_04 } from "./content/day04";
+import { DAY_05 } from "./content/day05";
+import { DAY_06 } from "./content/day06";
+import { DAY_07 } from "./content/day07";
+import { DAY_08 } from "./content/day08";
+import { DAY_09 } from "./content/day09";
+import { DAY_10 } from "./content/day10";
 import type { SeedDay } from "./content/types";
 
-const DAYS: SeedDay[] = [DAY_01];
+const DAYS: SeedDay[] = [
+  DAY_01,
+  DAY_02,
+  DAY_03,
+  DAY_04,
+  DAY_05,
+  DAY_06,
+  DAY_07,
+  DAY_08,
+  DAY_09,
+  DAY_10,
+];
 
 async function seedDay(day: SeedDay) {
   const supabase = createServiceRoleClient();
