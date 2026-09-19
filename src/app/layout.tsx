@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, Inter } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import { CloudLayer } from "@/components/CloudLayer";
 import "./globals.css";
 
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col bg-parchment text-ink">
         <CloudLayer />
         <div className="relative z-10 flex min-h-full flex-1 flex-col">{children}</div>
+        <Analytics />
       </body>
     </html>
   );
