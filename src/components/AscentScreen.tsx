@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { fetchJson } from "@/lib/fetchJson";
 import { TierBadge } from "./TierBadge";
-import { CloudLayer } from "./CloudLayer";
 import { AngelBurst } from "./AngelBurst";
 import type { AnswerTier, DailyQuestionSummary, DailySetSummary, SubmitQuestionAnswerResponse } from "@/lib/types";
 
@@ -114,7 +113,6 @@ function QuestionRound({
 
   return (
     <div className="relative flex-1 overflow-hidden">
-      <CloudLayer />
       {ascending && <AngelBurst />}
       <div
         className={`mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-6 py-10 ${
