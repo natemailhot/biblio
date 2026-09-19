@@ -43,7 +43,9 @@ export async function GET(
       .order("slot", { ascending: true }),
     supabase
       .from("submitted_answers")
-      .select("challenge_id, raw_input, result, matched_answer_id, submitted_at_ms")
+      .select(
+        "challenge_id, raw_input, result, matched_answer_id, submitted_at_ms, score, tier, canonical_answer, explanation, references, is_daily_gem"
+      )
       .eq("session_id", sessionId)
       .order("submitted_at_ms", { ascending: true }),
     supabase
@@ -86,21 +88,22 @@ export async function GET(
       .eq("active", true)
       .order("score", { ascending: false });
 
-    const matched = relevant?.matched_answer_id
-      ? (answerRows ?? []).find((a) => a.id === relevant.matched_answer_id)
-      : undefined;
-
+    // The scored outcome (score/tier/canonicalAnswer/etc.) is read from the
+    // snapshot stored on the submission itself at answer time, not
+    // re-derived from the current challenge_answers rows — that join can
+    // silently break if this question's content is later edited/reversioned,
+    // even though the score was already recorded correctly.
     questionResults.push({
       slot: question.slot,
       prompt: question.prompt,
       guess: relevant?.raw_input ?? "",
       result: relevant?.result ?? "invalid",
-      score: matched?.score ?? 0,
-      canonicalAnswer: matched?.canonical_answer,
-      tier: matched?.tier,
-      explanation: matched?.explanation,
-      references: matched?.references ?? [],
-      isDailyGem: matched ? matched.id === question.daily_gem_answer_id : false,
+      score: relevant?.score ?? 0,
+      canonicalAnswer: relevant?.canonical_answer ?? undefined,
+      tier: relevant?.tier ?? undefined,
+      explanation: relevant?.explanation ?? undefined,
+      references: relevant?.references ?? [],
+      isDailyGem: relevant?.is_daily_gem ?? false,
       guessCount,
       allAnswers: (answerRows ?? []).map((a) => ({
         canonicalAnswer: a.canonical_answer,

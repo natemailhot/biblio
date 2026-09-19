@@ -36,7 +36,7 @@ export async function POST(
 
   const { data: challenge, error: challengeError } = await supabase
     .from("daily_challenges")
-    .select("id, daily_set_id, slot, duration_seconds, answer_set_version")
+    .select("id, daily_set_id, slot, duration_seconds, answer_set_version, daily_gem_answer_id")
     .eq("id", challengeId)
     .single();
 
@@ -78,6 +78,8 @@ export async function POST(
   const submittedAtMs = Date.now();
   let response: SubmitQuestionAnswerResponse;
   let matchedAnswerId: string | null = null;
+  let matchedExplanation: string | null = null;
+  let matchedReferences: ChallengeAnswer["references"] | null = null;
   let normalizedInput = "";
 
   if (isSkip) {
@@ -129,6 +131,8 @@ export async function POST(
         : { result: "invalid", score: 0, message: "Not in today's answer set—try another day." };
     } else {
       matchedAnswerId = matched.id;
+      matchedExplanation = matched.explanation;
+      matchedReferences = matched.references;
       response = {
         result: "accepted",
         score: matched.score,
@@ -149,6 +153,14 @@ export async function POST(
     submitted_at_ms: submittedAtMs,
     matched_answer_id: matchedAnswerId,
     result: response.result,
+    // Snapshot the scored outcome so results stay correct even if this
+    // question's answer set is later edited/reversioned.
+    score: response.result === "accepted" ? response.score : null,
+    tier: response.result === "accepted" ? response.tier : null,
+    canonical_answer: response.result === "accepted" ? response.canonicalAnswer : null,
+    explanation: matchedExplanation,
+    references: matchedReferences,
+    is_daily_gem: matchedAnswerId !== null && matchedAnswerId === challenge.daily_gem_answer_id,
   });
 
   if (insertError) {

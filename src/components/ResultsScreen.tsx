@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { track } from "@vercel/analytics";
 import { BRAND_EMOJI, MISS_EMOJI, TIER_META } from "@/lib/content/tiers";
 import { BONUS_LEVEL_LABELS } from "@/lib/content/scriptureBonusScoring";
 import { fetchJson } from "@/lib/fetchJson";
@@ -152,6 +153,7 @@ export function ResultsScreen({
     if (typeof navigator.share === "function") {
       try {
         await navigator.share({ text: shareCard });
+        track("Result Shared", { dayNumber: results.dayNumber, method: "native" });
         return;
       } catch {
         // User cancelled the share sheet, or the browser rejected it —
@@ -162,6 +164,7 @@ export function ResultsScreen({
       await navigator.clipboard.writeText(shareCard);
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
+      track("Result Shared", { dayNumber: results.dayNumber, method: "clipboard" });
     } catch {
       // clipboard may be unavailable; the card text is still visible below
     }
@@ -178,6 +181,7 @@ export function ResultsScreen({
       });
       setReportSent(true);
       setReportMessage("");
+      track("Feedback Provided", { dayNumber: results.dayNumber });
     } catch {
       setReportError("Something went wrong — try again.");
     } finally {
