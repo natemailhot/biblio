@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { BRAND_EMOJI, MISS_EMOJI, TIER_META } from "@/lib/content/tiers";
 import { BONUS_LEVEL_LABELS } from "@/lib/content/scriptureBonusScoring";
+import { fetchJson } from "@/lib/fetchJson";
 import { TierBadge } from "./TierBadge";
 import type { QuestionResult, RankedAnswer, SessionResults } from "@/lib/types";
 
@@ -91,11 +92,20 @@ function QuestionCard({ q }: { q: QuestionResult }) {
 export function ResultsScreen({
   results,
   returning = false,
+  sessionId,
+  dailySetId,
 }: {
   results: SessionResults;
   returning?: boolean;
+  sessionId?: string;
+  dailySetId?: string;
 }) {
   const [copied, setCopied] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportMessage, setReportMessage] = useState("");
+  const [reportSubmitting, setReportSubmitting] = useState(false);
+  const [reportSent, setReportSent] = useState(false);
+  const [reportError, setReportError] = useState<string | null>(null);
 
   const grid = results.questionResults
     .map((q) => (q.result === "accepted" && q.tier ? TIER_META[q.tier].shareEmoji : MISS_EMOJI))
@@ -113,12 +123,39 @@ export function ResultsScreen({
   ].join("\n");
 
   const handleShare = async () => {
+    if (typeof navigator.share === "function") {
+      try {
+        await navigator.share({ text: shareCard });
+        return;
+      } catch {
+        // User cancelled the share sheet, or the browser rejected it —
+        // fall through to clipboard so the action still does something.
+      }
+    }
     try {
       await navigator.clipboard.writeText(shareCard);
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     } catch {
       // clipboard may be unavailable; the card text is still visible below
+    }
+  };
+
+  const submitReport = async () => {
+    if (!reportMessage.trim() || reportSubmitting) return;
+    setReportSubmitting(true);
+    setReportError(null);
+    try {
+      await fetchJson("/api/feedback", {
+        method: "POST",
+        body: JSON.stringify({ message: reportMessage.trim(), sessionId, dailySetId }),
+      });
+      setReportSent(true);
+      setReportMessage("");
+    } catch {
+      setReportError("Something went wrong — try again.");
+    } finally {
+      setReportSubmitting(false);
     }
   };
 
@@ -190,13 +227,50 @@ export function ResultsScreen({
         >
           {copied ? "Copied to clipboard" : "Share spoiler-free result"}
         </button>
-        <a
-          href="mailto:feedback@dailyascend.io?subject=Missing%20answer%20or%20issue"
+        <button
+          type="button"
+          onClick={() => setReportOpen((o) => !o)}
+          aria-expanded={reportOpen}
           className="flex-1 rounded-full border-2 border-stone px-6 py-3 text-center font-medium text-stone-dark transition-colors hover:bg-white/60"
         >
           Report a missing answer
-        </a>
+        </button>
       </div>
+
+      {reportOpen && (
+        <div className="animate-rise-in rounded-2xl border border-stone/30 bg-white/60 p-5">
+          {reportSent ? (
+            <p className="text-sm text-olive">
+              Thanks — your report was sent. We&apos;ll take a look.
+            </p>
+          ) : (
+            <>
+              <label htmlFor="report-message" className="text-sm text-stone-dark">
+                What&apos;s missing or wrong? A valid answer we didn&apos;t accept, a bad
+                reference, anything.
+              </label>
+              <textarea
+                id="report-message"
+                value={reportMessage}
+                onChange={(e) => setReportMessage(e.target.value)}
+                rows={3}
+                maxLength={2000}
+                className="mt-2 w-full rounded-xl border border-stone/40 bg-white px-4 py-3 text-ink focus:border-indigo"
+                placeholder="e.g. “Elijah should also count for Question 2”"
+              />
+              {reportError && <p className="mt-2 text-sm text-indigo-dim">{reportError}</p>}
+              <button
+                type="button"
+                onClick={submitReport}
+                disabled={reportSubmitting || !reportMessage.trim()}
+                className="mt-3 w-full rounded-full bg-indigo px-6 py-3 font-medium text-parchment disabled:opacity-50"
+              >
+                Send report
+              </button>
+            </>
+          )}
+        </div>
+      )}
 
       <p className="text-center text-sm text-stone-dark">Come back tomorrow for Day {results.dayNumber + 1}.</p>
     </div>

@@ -150,3 +150,9 @@ export type SessionResults = {
     contextNote: string;
   };
 };
+
+export type SubmitFeedbackRequest = {
+  message: string;
+  sessionId?: string;
+  dailySetId?: string;
+};

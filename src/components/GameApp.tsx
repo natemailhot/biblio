@@ -109,7 +109,14 @@ export function GameApp() {
   }
 
   if (phase === "results" && results) {
-    return <ResultsScreen results={results} returning={returning} />;
+    return (
+      <ResultsScreen
+        results={results}
+        returning={returning}
+        sessionId={sessionId ?? undefined}
+        dailySetId={dailySet?.id}
+      />
+    );
   }
 
   return null;
