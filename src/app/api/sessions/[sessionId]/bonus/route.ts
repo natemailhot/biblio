@@ -11,6 +11,15 @@ import type { ScriptureBonusLevel, SubmitBonusResponse, Testament } from "@/lib/
 
 const VALID_LEVELS: ScriptureBonusLevel[] = ["testament", "book", "chapter", "verse", "skip"];
 
+// Players naturally type a full reference ("John 3:16") into the book
+// field even at "book" precision. Strip a trailing chapter[:verse[-verse]]
+// pattern so that still resolves to the book name — only the trailing
+// occurrence is stripped, so book names that themselves start with a
+// number ("1 Samuel", "3 John") are unaffected.
+function stripTrailingReference(raw: string): string {
+  return raw.replace(/\s+\d+(:\d+(-\d+)?)?\s*$/, "").trim();
+}
+
 // Scores the Scripture Bonus as a multiplier on the Ascent score, based on
 // how precisely the player guesses the verse's location. The player
 // chooses exactly one precision level and gets exactly one guess — no
@@ -88,7 +97,9 @@ export async function POST(
       if (!book || !book.trim()) {
         return NextResponse.json({ error: "book is required" }, { status: 400 });
       }
-      const bookMatches = acceptedBooksNormalized.includes(normalizeAnswer(book));
+      const bookMatches =
+        acceptedBooksNormalized.includes(normalizeAnswer(book)) ||
+        acceptedBooksNormalized.includes(normalizeAnswer(stripTrailingReference(book)));
 
       if (level === "book") {
         correct = bookMatches;
