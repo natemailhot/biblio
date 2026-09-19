@@ -1,485 +1,32 @@
-// Seeds day 1 of the new 5-question format: one daily_set with 5 slots
-// (each its own curated multi-answer prompt, single guess) plus one
-// Scripture Bonus.
+// Seeds one or more days of the 5-question format (each day: a daily_set
+// with 5 slots, each a curated multi-answer prompt with a single guess,
+// plus one Scripture Bonus). Add new days by importing their SeedDay and
+// listing it in DAYS below.
 //
 // Run with: npx tsx src/lib/scripts/seed.ts
 import { createServiceRoleClient } from "../supabase/server";
 import { normalizeAnswer } from "../answers/normalize";
+import { DAY_01 } from "./content/day01";
+import type { SeedDay } from "./content/types";
 
-type SeedReference = {
-  book: string;
-  chapterStart: number;
-  verseStart?: number;
-  chapterEnd?: number;
-  verseEnd?: number;
-  display: string;
-};
+const DAYS: SeedDay[] = [DAY_01];
 
-type SeedAnswer = {
-  canonical: string;
-  aliases: string[];
-  score: 10 | 20 | 30 | 60 | 85 | 100;
-  tier: "outer-court" | "bronze-altar" | "holy-place" | "veil" | "holy-of-holies" | "third-heaven";
-  references: SeedReference[];
-  explanation: string;
-  inclusionNotes?: string;
-};
-
-type SeedQuestion = {
-  slot: number;
-  prompt: string;
-  instructions: string;
-  whatCounts: string;
-  answers: SeedAnswer[];
-};
-
-const QUESTIONS: SeedQuestion[] = [
-  {
-    slot: 1,
-    prompt: "Name someone who spoke directly with God in the Bible.",
-    instructions: "You get one guess.",
-    whatCounts:
-      "Any named person for whom the biblical text explicitly describes direct speech from God. Use the product's defined 66-book canon.",
-    answers: [
-      {
-        canonical: "Moses",
-        aliases: ["moshe"],
-        score: 10,
-        tier: "outer-court",
-        references: [
-          { book: "Exodus", chapterStart: 3, verseStart: 4, verseEnd: 6, display: "Exodus 3:4-6" },
-          { book: "Exodus", chapterStart: 33, verseStart: 11, display: "Exodus 33:11" },
-        ],
-        explanation:
-          "God calls Moses from the burning bush and speaks with him repeatedly during Israel's wilderness journey.",
-      },
-      {
-        canonical: "Abraham",
-        aliases: ["abram"],
-        score: 10,
-        tier: "outer-court",
-        references: [{ book: "Genesis", chapterStart: 12, verseStart: 1, display: "Genesis 12:1" }],
-        explanation:
-          "Direct divine speech appears throughout Genesis in God's covenant dealings with Abraham.",
-      },
-      {
-        canonical: "Jesus",
-        aliases: ["jesus christ", "christ", "yeshua"],
-        score: 10,
-        tier: "outer-court",
-        references: [
-          { book: "Matthew", chapterStart: 3, verseStart: 17, display: "Matthew 3:17" },
-          { book: "Matthew", chapterStart: 26, verseStart: 39, display: "Matthew 26:39" },
-        ],
-        explanation:
-          "The Father's voice addresses Jesus directly at his baptism, and Jesus prays directly to the Father in Gethsemane.",
-        inclusionNotes:
-          "Included for the Gospels' accounts of two-way address between Jesus and the Father — not a claim about the nature of the Trinity, which this game doesn't adjudicate.",
-      },
-      {
-        canonical: "Jacob",
-        aliases: ["israel"],
-        score: 20,
-        tier: "bronze-altar",
-        references: [
-          { book: "Genesis", chapterStart: 28, verseStart: 13, display: "Genesis 28:13" },
-          { book: "Genesis", chapterStart: 46, verseStart: 2, display: "Genesis 46:2" },
-        ],
-        explanation: "God speaks to Jacob at Bethel and again in a night vision on the way to Egypt.",
-      },
-      {
-        canonical: "Solomon",
-        aliases: [],
-        score: 20,
-        tier: "bronze-altar",
-        references: [{ book: "1 Kings", chapterStart: 3, verseStart: 5, display: "1 Kings 3:5" }],
-        explanation: "The LORD appears to Solomon in a dream at Gibeon and speaks with him directly.",
-      },
-      {
-        canonical: "Samuel",
-        aliases: [],
-        score: 20,
-        tier: "bronze-altar",
-        references: [{ book: "1 Samuel", chapterStart: 3, verseStart: 1, display: "1 Samuel 3" }],
-        explanation: "God calls the boy Samuel by name in the night in 1 Samuel 3.",
-      },
-      {
-        canonical: "Elijah",
-        aliases: ["elias"],
-        score: 30,
-        tier: "holy-place",
-        references: [{ book: "1 Kings", chapterStart: 19, verseStart: 9, verseEnd: 18, display: "1 Kings 19:9-18" }],
-        explanation:
-          "On Mount Horeb, after the wind, earthquake, and fire, God speaks to Elijah in a still, small voice.",
-      },
-      {
-        canonical: "Isaiah",
-        aliases: [],
-        score: 30,
-        tier: "holy-place",
-        references: [{ book: "Isaiah", chapterStart: 6, verseStart: 1, verseEnd: 8, display: "Isaiah 6:1-8" }],
-        explanation:
-          "In his temple vision, Isaiah hears the Lord ask, \"Whom shall I send?\" and answers directly.",
-      },
-      {
-        canonical: "Job",
-        aliases: [],
-        score: 30,
-        tier: "holy-place",
-        references: [{ book: "Job", chapterStart: 38, verseStart: 1, display: "Job 38:1" }],
-        explanation: "God answers Job out of the whirlwind after Job's long complaint.",
-      },
-      {
-        canonical: "Hagar",
-        aliases: [],
-        score: 60,
-        tier: "veil",
-        references: [
-          { book: "Genesis", chapterStart: 16, verseStart: 7, verseEnd: 13, display: "Genesis 16:7-13" },
-          { book: "Genesis", chapterStart: 21, verseStart: 17, verseEnd: 19, display: "Genesis 21:17-19" },
-        ],
-        explanation:
-          "God meets Hagar in the wilderness, gives her a promise concerning Ishmael, and later hears her son's cry.",
-      },
-      {
-        canonical: "Balaam",
-        aliases: [],
-        score: 60,
-        tier: "veil",
-        references: [{ book: "Numbers", chapterStart: 22, verseStart: 9, verseEnd: 12, display: "Numbers 22:9-12" }],
-        explanation:
-          "God speaks directly to Balaam, a non-Israelite prophet-for-hire, warning him about Balak's request.",
-      },
-      {
-        canonical: "Huldah",
-        aliases: [],
-        score: 85,
-        tier: "holy-of-holies",
-        references: [{ book: "2 Kings", chapterStart: 22, display: "2 Kings 22" }],
-        explanation: "The prophet Huldah is consulted and delivers the Lord's word in 2 Kings 22.",
-      },
-      {
-        canonical: "Cain",
-        aliases: [],
-        score: 100,
-        tier: "third-heaven",
-        references: [{ book: "Genesis", chapterStart: 4, verseStart: 6, verseEnd: 15, display: "Genesis 4:6-15" }],
-        explanation: "After Cain becomes angry, God questions, warns, judges, and marks him for protection.",
-      },
-    ],
-  },
-  {
-    slot: 2,
-    prompt: "Name a judge of Israel.",
-    instructions: "You get one guess.",
-    whatCounts:
-      "Any of the judges named in the book of Judges (or 1 Samuel for Samuel's predecessors' successors). Use the product's defined 66-book canon.",
-    answers: [
-      {
-        canonical: "Othniel",
-        aliases: [],
-        score: 10,
-        tier: "outer-court",
-        references: [{ book: "Judges", chapterStart: 3, verseStart: 9, verseEnd: 11, display: "Judges 3:9-11" }],
-        explanation: "Othniel is the first judge the LORD raises up to deliver Israel.",
-      },
-      {
-        canonical: "Gideon",
-        aliases: [],
-        score: 10,
-        tier: "outer-court",
-        references: [{ book: "Judges", chapterStart: 6, display: "Judges 6-8" }],
-        explanation: "Gideon tests God with the fleece and leads Israel against Midian with 300 men.",
-      },
-      {
-        canonical: "Samson",
-        aliases: [],
-        score: 10,
-        tier: "outer-court",
-        references: [{ book: "Judges", chapterStart: 13, display: "Judges 13-16" }],
-        explanation: "Samson, famed for his strength and his fall to Delilah, judges Israel for twenty years.",
-      },
-      {
-        canonical: "Deborah",
-        aliases: [],
-        score: 20,
-        tier: "bronze-altar",
-        references: [{ book: "Judges", chapterStart: 4, display: "Judges 4-5" }],
-        explanation: "Deborah, a prophetess, is the only woman named among Israel's judges.",
-      },
-      {
-        canonical: "Ehud",
-        aliases: [],
-        score: 20,
-        tier: "bronze-altar",
-        references: [{ book: "Judges", chapterStart: 3, verseStart: 15, verseEnd: 30, display: "Judges 3:15-30" }],
-        explanation: "The left-handed judge Ehud delivers Israel from King Eglon of Moab.",
-      },
-      {
-        canonical: "Jephthah",
-        aliases: [],
-        score: 30,
-        tier: "holy-place",
-        references: [{ book: "Judges", chapterStart: 11, display: "Judges 11" }],
-        explanation: "Jephthah defeats the Ammonites after a rash vow that costs him his daughter.",
-      },
-      {
-        canonical: "Shamgar",
-        aliases: [],
-        score: 60,
-        tier: "veil",
-        references: [{ book: "Judges", chapterStart: 3, verseStart: 31, display: "Judges 3:31" }],
-        explanation: "Shamgar gets a single verse, striking down 600 Philistines with an ox goad.",
-      },
-      {
-        canonical: "Jair",
-        aliases: [],
-        score: 100,
-        tier: "third-heaven",
-        references: [{ book: "Judges", chapterStart: 10, verseStart: 3, verseEnd: 5, display: "Judges 10:3-5" }],
-        explanation:
-          "Jair judged Israel 22 years; his thirty sons rode thirty donkeys and held thirty towns.",
-      },
-    ],
-  },
-  {
-    slot: 3,
-    prompt: "Name a woman named in the Gospels.",
-    instructions: "You get one guess.",
-    whatCounts: "Any woman named by the biblical text in Matthew, Mark, Luke, or John.",
-    answers: [
-      {
-        canonical: "Mary",
-        aliases: ["mary mother of jesus", "virgin mary"],
-        score: 10,
-        tier: "outer-court",
-        references: [{ book: "Luke", chapterStart: 1, verseStart: 26, verseEnd: 38, display: "Luke 1:26-38" }],
-        explanation: "Mary, the mother of Jesus, receives the angel Gabriel's announcement.",
-      },
-      {
-        canonical: "Mary Magdalene",
-        aliases: ["magdalene"],
-        score: 10,
-        tier: "outer-court",
-        references: [{ book: "John", chapterStart: 20, verseStart: 1, verseEnd: 18, display: "John 20:1-18" }],
-        explanation: "Mary Magdalene is the first witness of the risen Jesus.",
-      },
-      {
-        canonical: "Martha",
-        aliases: [],
-        score: 20,
-        tier: "bronze-altar",
-        references: [{ book: "Luke", chapterStart: 10, verseStart: 38, verseEnd: 42, display: "Luke 10:38-42" }],
-        explanation: "Martha serves Jesus in her home while her sister Mary listens at his feet.",
-      },
-      {
-        canonical: "Elizabeth",
-        aliases: [],
-        score: 20,
-        tier: "bronze-altar",
-        references: [{ book: "Luke", chapterStart: 1, verseStart: 5, verseEnd: 25, display: "Luke 1:5-25" }],
-        explanation: "Elizabeth, John the Baptist's mother, greets the pregnant Mary as blessed.",
-      },
-      {
-        canonical: "Anna",
-        aliases: [],
-        score: 30,
-        tier: "holy-place",
-        references: [{ book: "Luke", chapterStart: 2, verseStart: 36, verseEnd: 38, display: "Luke 2:36-38" }],
-        explanation: "The prophetess Anna recognizes the infant Jesus in the temple.",
-      },
-      {
-        canonical: "Joanna",
-        aliases: [],
-        score: 60,
-        tier: "veil",
-        references: [{ book: "Luke", chapterStart: 8, verseStart: 3, display: "Luke 8:3" }],
-        explanation: "Joanna is named among the women who supported Jesus' ministry out of their means.",
-      },
-      {
-        canonical: "Susanna",
-        aliases: [],
-        score: 85,
-        tier: "holy-of-holies",
-        references: [{ book: "Luke", chapterStart: 8, verseStart: 3, display: "Luke 8:3" }],
-        explanation: "Susanna is named only once, alongside Joanna, as a supporter of Jesus' ministry.",
-      },
-      {
-        canonical: "Herodias",
-        aliases: [],
-        score: 100,
-        tier: "third-heaven",
-        references: [{ book: "Matthew", chapterStart: 14, verseStart: 3, verseEnd: 11, display: "Matthew 14:3-11" }],
-        explanation:
-          "Herodias, Herod's wife, orchestrates John the Baptist's execution through her daughter's dance.",
-      },
-    ],
-  },
-  {
-    slot: 4,
-    prompt: "Name a city Paul visited in the book of Acts.",
-    instructions: "You get one guess.",
-    whatCounts: "Any city the book of Acts explicitly describes Paul visiting.",
-    answers: [
-      {
-        canonical: "Antioch",
-        aliases: [],
-        score: 10,
-        tier: "outer-court",
-        references: [{ book: "Acts", chapterStart: 13, verseStart: 1, display: "Acts 13:1" }],
-        explanation: "Antioch in Syria sends Paul out on his missionary journeys.",
-      },
-      {
-        canonical: "Ephesus",
-        aliases: [],
-        score: 10,
-        tier: "outer-court",
-        references: [{ book: "Acts", chapterStart: 19, display: "Acts 19" }],
-        explanation: "Paul spends over two years teaching in Ephesus.",
-      },
-      {
-        canonical: "Corinth",
-        aliases: [],
-        score: 20,
-        tier: "bronze-altar",
-        references: [{ book: "Acts", chapterStart: 18, verseStart: 1, display: "Acts 18:1" }],
-        explanation: "Paul settles in Corinth for a year and a half, working alongside Aquila and Priscilla.",
-      },
-      {
-        canonical: "Philippi",
-        aliases: [],
-        score: 20,
-        tier: "bronze-altar",
-        references: [{ book: "Acts", chapterStart: 16, verseStart: 12, display: "Acts 16:12" }],
-        explanation: "Paul and Silas are imprisoned and miraculously freed in Philippi.",
-      },
-      {
-        canonical: "Athens",
-        aliases: [],
-        score: 30,
-        tier: "holy-place",
-        references: [{ book: "Acts", chapterStart: 17, verseStart: 16, display: "Acts 17:16" }],
-        explanation: "Paul addresses the Areopagus in Athens about the \"unknown god.\"",
-      },
-      {
-        canonical: "Berea",
-        aliases: ["beroea"],
-        score: 30,
-        tier: "holy-place",
-        references: [{ book: "Acts", chapterStart: 17, verseStart: 10, display: "Acts 17:10" }],
-        explanation: "The Bereans are commended for examining the Scriptures daily to test Paul's teaching.",
-      },
-      {
-        canonical: "Lystra",
-        aliases: [],
-        score: 60,
-        tier: "veil",
-        references: [{ book: "Acts", chapterStart: 14, verseStart: 8, display: "Acts 14:8" }],
-        explanation: "Paul heals a lame man in Lystra and is later stoned there.",
-      },
-      {
-        canonical: "Troas",
-        aliases: [],
-        score: 100,
-        tier: "third-heaven",
-        references: [{ book: "Acts", chapterStart: 20, verseStart: 9, display: "Acts 20:9" }],
-        explanation:
-          "In Troas, young Eutychus falls asleep during Paul's long sermon, falls from a window, and is raised back to life.",
-      },
-    ],
-  },
-  {
-    slot: 5,
-    prompt: "Name an object in or associated with the tabernacle.",
-    instructions: "You get one guess.",
-    whatCounts:
-      "Any furnishing or object the text explicitly places in or associated with the wilderness tabernacle.",
-    answers: [
-      {
-        canonical: "Ark of the Covenant",
-        aliases: ["ark"],
-        score: 10,
-        tier: "outer-court",
-        references: [{ book: "Exodus", chapterStart: 25, verseStart: 10, verseEnd: 22, display: "Exodus 25:10-22" }],
-        explanation: "The Ark of the Covenant holds the tablets of the law within the Holy of Holies.",
-      },
-      {
-        canonical: "Altar of Burnt Offering",
-        aliases: ["bronze altar", "brazen altar"],
-        score: 10,
-        tier: "outer-court",
-        references: [{ book: "Exodus", chapterStart: 27, verseStart: 1, verseEnd: 8, display: "Exodus 27:1-8" }],
-        explanation: "The bronze altar for burnt offerings stands in the tabernacle's outer court.",
-      },
-      {
-        canonical: "Menorah",
-        aliases: ["lampstand", "golden lampstand"],
-        score: 20,
-        tier: "bronze-altar",
-        references: [{ book: "Exodus", chapterStart: 25, verseStart: 31, verseEnd: 40, display: "Exodus 25:31-40" }],
-        explanation: "The golden lampstand lights the Holy Place.",
-      },
-      {
-        canonical: "Table of Showbread",
-        aliases: ["table of the bread of the presence"],
-        score: 20,
-        tier: "bronze-altar",
-        references: [{ book: "Exodus", chapterStart: 25, verseStart: 23, verseEnd: 30, display: "Exodus 25:23-30" }],
-        explanation: "Twelve loaves of bread rest continually on this table in the Holy Place.",
-      },
-      {
-        canonical: "Veil",
-        aliases: ["curtain"],
-        score: 30,
-        tier: "holy-place",
-        references: [{ book: "Exodus", chapterStart: 26, verseStart: 31, verseEnd: 33, display: "Exodus 26:31-33" }],
-        explanation: "The veil separates the Holy Place from the Holy of Holies.",
-      },
-      {
-        canonical: "Laver",
-        aliases: ["bronze basin", "bronze laver"],
-        score: 30,
-        tier: "holy-place",
-        references: [{ book: "Exodus", chapterStart: 30, verseStart: 17, verseEnd: 21, display: "Exodus 30:17-21" }],
-        explanation: "Priests wash their hands and feet at the bronze laver before serving.",
-      },
-      {
-        canonical: "Ephod",
-        aliases: [],
-        score: 60,
-        tier: "veil",
-        references: [{ book: "Exodus", chapterStart: 28, verseStart: 6, verseEnd: 14, display: "Exodus 28:6-14" }],
-        explanation: "The high priest's ephod carries two onyx stones engraved with Israel's tribes.",
-      },
-      {
-        canonical: "Mercy Seat",
-        aliases: ["atonement cover"],
-        score: 100,
-        tier: "third-heaven",
-        references: [{ book: "Exodus", chapterStart: 25, verseStart: 17, verseEnd: 22, display: "Exodus 25:17-22" }],
-        explanation:
-          "The golden mercy seat atop the Ark is where God promises to meet Moses and speak with him.",
-      },
-    ],
-  },
-];
-
-async function seed() {
+async function seedDay(day: SeedDay) {
   const supabase = createServiceRoleClient();
 
   const { data: bonus, error: bonusError } = await supabase
     .from("scripture_bonus")
     .insert({
-      display_text: "The Lord is my shepherd; I shall not want.",
-      book: "Psalms",
-      chapter: 23,
-      verse_start: 1,
-      reference_display: "Psalm 23:1",
-      translation: "World English Bible (public domain)",
-      licensing_metadata: "Public domain",
-      context_note:
-        "Psalm 23 uses the image of a shepherd to express trust in God's guidance and care.",
-      accepted_book_aliases: ["psalm", "psalms"],
+      display_text: day.scriptureBonus.displayText,
+      book: day.scriptureBonus.book,
+      chapter: day.scriptureBonus.chapter,
+      verse_start: day.scriptureBonus.verseStart,
+      verse_end: day.scriptureBonus.verseEnd ?? null,
+      reference_display: day.scriptureBonus.referenceDisplay,
+      translation: day.scriptureBonus.translation,
+      licensing_metadata: day.scriptureBonus.licensingMetadata,
+      context_note: day.scriptureBonus.contextNote,
+      accepted_book_aliases: day.scriptureBonus.acceptedBookAliases,
       difficulty: "easy",
       canon_scope: "protestant-66",
     })
@@ -491,8 +38,8 @@ async function seed() {
   const { data: dailySet, error: dailySetError } = await supabase
     .from("daily_sets")
     .insert({
-      date: "2026-10-01",
-      day_number: 1,
+      date: day.date,
+      day_number: day.dayNumber,
       scripture_bonus_id: bonus.id,
       status: "published",
     })
@@ -501,7 +48,7 @@ async function seed() {
 
   if (dailySetError || !dailySet) throw dailySetError ?? new Error("Failed to insert daily set");
 
-  for (const question of QUESTIONS) {
+  for (const question of day.questions) {
     const { data: challenge, error: challengeError } = await supabase
       .from("daily_challenges")
       .insert({
@@ -554,10 +101,16 @@ async function seed() {
   console.log(
     "Seeded daily set",
     dailySet.id,
-    "(day 1, 2026-10-01) with",
-    QUESTIONS.length,
+    `(day ${day.dayNumber}, ${day.date}) with`,
+    day.questions.length,
     "questions"
   );
+}
+
+async function seed() {
+  for (const day of DAYS) {
+    await seedDay(day);
+  }
 }
 
 seed()
