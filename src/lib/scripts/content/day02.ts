@@ -404,9 +404,9 @@ export const DAY_02: SeedDay = {
     },
     {
       slot: 5,
-      prompt: "Name an animal mentioned in the Bible.",
+      prompt: "Name an animal/creature mentioned in the Bible.",
       instructions: "You get one guess.",
-      whatCounts: "Any animal explicitly named in the biblical text.",
+      whatCounts: "Any animal or creature explicitly named in the biblical text.",
       answers: [
         {
           canonical: "Donkey",
@@ -423,6 +423,14 @@ export const DAY_02: SeedDay = {
           tier: "outer-court",
           references: [{ book: "Genesis", chapterStart: 8, verseStart: 11, display: "Genesis 8:11" }],
           explanation: "Noah sends out a dove that returns with a freshly plucked olive leaf.",
+        },
+        {
+          canonical: "Lamb",
+          aliases: [],
+          score: 10,
+          tier: "outer-court",
+          references: [{ book: "Exodus", chapterStart: 12, verseStart: 3, verseEnd: 6, display: "Exodus 12:3-6" }],
+          explanation: "A lamb without blemish is prescribed for the first Passover, and lambs recur throughout the sacrificial law.",
         },
         {
           canonical: "Lion",
