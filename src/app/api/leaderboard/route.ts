@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
+import { bucketScores } from "@/lib/content/scoreBuckets";
 
 const LIMIT = 50;
 
@@ -55,6 +56,8 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  const histogram = bucketScores([...bestByUser.values()].map((v) => v.score));
+
   const entries = [...bestByUser.entries()]
     .map(([userId, best]) => ({
       username: usernameById.get(userId) ?? null,
@@ -65,5 +68,5 @@ export async function GET(req: NextRequest) {
     .sort((a, b) => b.score - a.score)
     .slice(0, LIMIT);
 
-  return NextResponse.json({ range, entries });
+  return NextResponse.json({ range, entries, histogram });
 }

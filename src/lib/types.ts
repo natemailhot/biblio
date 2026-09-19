@@ -198,7 +198,13 @@ export type LeaderboardEntry = {
   multiplier: number;
 };
 
+export type ScoreHistogramBucket = {
+  label: string;
+  count: number;
+};
+
 export type LeaderboardResponse = {
   range: LeaderboardRange;
   entries: LeaderboardEntry[];
+  histogram: ScoreHistogramBucket[];
 };

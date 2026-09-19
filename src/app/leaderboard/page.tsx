@@ -5,7 +5,14 @@ import Link from "next/link";
 import { BRAND_EMOJI } from "@/lib/content/tiers";
 import { fetchJson } from "@/lib/fetchJson";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browserClient";
+import { ScoreHistogram } from "@/components/ScoreHistogram";
 import type { AccountMeResponse, LeaderboardRange, LeaderboardResponse } from "@/lib/types";
+
+const RANGE_NOUN: Record<LeaderboardRange, string> = {
+  today: "today's",
+  week: "this week's",
+  all: "all-time",
+};
 
 const RANGES: { key: LeaderboardRange; label: string }[] = [
   { key: "today", label: "Today" },
@@ -84,6 +91,18 @@ export default function LeaderboardPage() {
       )}
 
       {error && <p className="text-sm text-indigo-dim">{error}</p>}
+
+      {data && (
+        <div className="rounded-2xl border border-gold-soft bg-white/60 p-5">
+          <p className="font-serif-heading text-sm uppercase tracking-[0.2em] text-gold">
+            Score distribution
+          </p>
+          <p className="text-xs text-stone-dark">{RANGE_NOUN[data.range]} scores</p>
+          <div className="mt-4">
+            <ScoreHistogram buckets={data.histogram} />
+          </div>
+        </div>
+      )}
 
       {data && data.entries.length === 0 && (
         <p className="text-center text-stone-dark">No scores yet for this range.</p>
