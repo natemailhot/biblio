@@ -1,13 +1,21 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import type { DailySetSummary } from "@/lib/types";
+
+const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 // Public-safe entry point for the landing screen: the day's 5 question
 // prompts and the bonus verse text, but never any answer set or the
 // bonus's correct book.
-export async function GET() {
+export async function GET(req: NextRequest) {
   const supabase = createServiceRoleClient();
-  const today = new Date().toISOString().slice(0, 10);
+
+  // The day rolls over at midnight in each player's own local time, not a
+  // single canonical server time — the client sends its local calendar
+  // date; fall back to the server's UTC date if it's missing or malformed
+  // (e.g. a direct API call without the query param).
+  const clientDate = req.nextUrl.searchParams.get("date");
+  const today = clientDate && DATE_PATTERN.test(clientDate) ? clientDate : new Date().toISOString().slice(0, 10);
 
   let { data: dailySet } = await supabase
     .from("daily_sets")

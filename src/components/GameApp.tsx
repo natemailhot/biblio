@@ -20,7 +20,10 @@ export function GameApp() {
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
-    fetchJson<DailySetSummary>("/api/daily-set")
+    // en-CA formats as YYYY-MM-DD; omitting timeZone uses the browser's
+    // own local timezone, so the day rolls over at each player's midnight.
+    const localDate = new Date().toLocaleDateString("en-CA");
+    fetchJson<DailySetSummary>(`/api/daily-set?date=${localDate}`)
       .then(async (d) => {
         setDailySet(d);
 
