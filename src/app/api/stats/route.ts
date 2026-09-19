@@ -13,7 +13,7 @@ export async function GET() {
   const [{ data: sessions }, { data: today }] = await Promise.all([
     supabase
       .from("game_sessions")
-      .select("total_score, scripture_bonus_multiplier, daily_set_id, daily_sets(day_number)")
+      .select("total_score, scripture_bonus_multiplier, daily_set_id, daily_sets(day_number, date)")
       .eq("user_id", userId)
       .not("completed_at", "is", null),
     supabase
@@ -23,8 +23,28 @@ export async function GET() {
       .maybeSingle(),
   ]);
 
-  const rows = sessions ?? [];
-  const played = rows.length;
+  // A day can have more than one completed session for the same account
+  // (an anonymous play later linked, a replay from another device/browser
+  // — nothing server-side blocks it, only the localStorage guard on the
+  // same browser). Keep only the best score per day so stats reflect
+  // "your best run each day," not inflated by duplicates.
+  const bestByDay = new Map<number, { dayNumber: number; date: string; score: number; multiplier: number }>();
+  for (const r of sessions ?? []) {
+    const dailySet = r.daily_sets as unknown as { day_number: number; date: string } | null;
+    if (!dailySet) continue;
+    const existing = bestByDay.get(dailySet.day_number);
+    if (!existing || r.total_score > existing.score) {
+      bestByDay.set(dailySet.day_number, {
+        dayNumber: dailySet.day_number,
+        date: dailySet.date,
+        score: r.total_score,
+        multiplier: r.scripture_bonus_multiplier,
+      });
+    }
+  }
+
+  const history = [...bestByDay.values()].sort((a, b) => b.dayNumber - a.dayNumber);
+  const played = history.length;
 
   if (played === 0) {
     return NextResponse.json({
@@ -33,37 +53,29 @@ export async function GET() {
       averageScore: 0,
       bestScore: 0,
       averageMultiplier: 0,
+      history: [],
     });
   }
 
-  const averageScore = Math.round(rows.reduce((s, r) => s + r.total_score, 0) / played);
-  const bestScore = Math.max(...rows.map((r) => r.total_score));
-  const averageMultiplier =
-    Math.round((rows.reduce((s, r) => s + r.scripture_bonus_multiplier, 0) / played) * 100) / 100;
+  const averageScore = Math.round(history.reduce((s, r) => s + r.score, 0) / played);
+  const bestScore = Math.max(...history.map((r) => r.score));
+  const averageMultiplier = Math.round((history.reduce((s, r) => s + r.multiplier, 0) / played) * 100) / 100;
 
-  // Day streak: consecutive daily_set day_numbers played, walking backward
-  // from the most recent one — only "live" if the most recent play was
-  // today or yesterday (relative to the player's local date, same
-  // day-rollover convention the rest of the app uses).
-  const dayNumbers = [
-    ...new Set(
-      rows
-        .map((r) => (r.daily_sets as unknown as { day_number: number } | null)?.day_number)
-        .filter((n): n is number => typeof n === "number")
-    ),
-  ].sort((a, b) => b - a);
-
+  // Day streak: consecutive day_numbers played, walking backward from the
+  // most recent one — only "live" if the most recent play was today or
+  // yesterday (relative to the player's local date, same day-rollover
+  // convention the rest of the app uses).
   let dayStreak = 0;
-  if (dayNumbers.length > 0 && today?.day_number != null) {
-    const mostRecent = dayNumbers[0];
+  if (today?.day_number != null) {
+    const mostRecent = history[0].dayNumber;
     if (mostRecent === today.day_number || mostRecent === today.day_number - 1) {
       dayStreak = 1;
-      for (let i = 1; i < dayNumbers.length; i++) {
-        if (dayNumbers[i] === dayNumbers[i - 1] - 1) dayStreak++;
+      for (let i = 1; i < history.length; i++) {
+        if (history[i].dayNumber === history[i - 1].dayNumber - 1) dayStreak++;
         else break;
       }
     }
   }
 
-  return NextResponse.json({ played, dayStreak, averageScore, bestScore, averageMultiplier });
+  return NextResponse.json({ played, dayStreak, averageScore, bestScore, averageMultiplier, history });
 }

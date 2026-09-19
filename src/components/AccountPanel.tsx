@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { STAT_ROWS } from "@/lib/content/statRows";
 import type { AccountMeResponse, PlayerStats } from "@/lib/types";
 
 // Presentational: content shown inside the account popover. All data and
@@ -93,23 +94,13 @@ export function AccountPanel({
             See full stats →
           </Link>
           {stats && (
-            <div className="mt-3 grid grid-cols-4 gap-2 text-center">
-              <div>
-                <p className="font-serif-heading text-xl font-semibold text-ink">{stats.played}</p>
-                <p className="text-xs text-stone-dark">Played</p>
-              </div>
-              <div>
-                <p className="font-serif-heading text-xl font-semibold text-ink">{stats.dayStreak}</p>
-                <p className="text-xs text-stone-dark">Day streak</p>
-              </div>
-              <div>
-                <p className="font-serif-heading text-xl font-semibold text-ink">×{stats.averageMultiplier.toFixed(2)}</p>
-                <p className="text-xs text-stone-dark">Avg. bonus</p>
-              </div>
-              <div>
-                <p className="font-serif-heading text-xl font-semibold text-ink">{stats.bestScore}</p>
-                <p className="text-xs text-stone-dark">Best day</p>
-              </div>
+            <div className="mt-3 grid grid-cols-3 gap-y-2 gap-x-2 text-center">
+              {STAT_ROWS.map((row) => (
+                <div key={row.key}>
+                  <p className="font-serif-heading text-lg font-semibold text-ink">{row.format(stats[row.key])}</p>
+                  <p className="text-[11px] leading-tight text-stone-dark">{row.label}</p>
+                </div>
+              ))}
             </div>
           )}
         </>

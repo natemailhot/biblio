@@ -25,7 +25,11 @@ export async function GET(req: NextRequest) {
     .not("completed_at", "is", null)
     .not("user_id", "is", null)
     .order("total_score", { ascending: false })
-    .limit(LIMIT);
+    // Fetched well above LIMIT because a user can rack up more than one
+    // completed session for the same window (replays, an anonymous play
+    // later linked to their account, another device); dedupe to each
+    // user's single best score below, then take the top LIMIT of that.
+    .limit(LIMIT * 10);
 
   if (range === "today" && today?.day_number != null) {
     query = query.eq("daily_sets.day_number", today.day_number);
@@ -42,13 +46,24 @@ export async function GET(req: NextRequest) {
   const { data: profiles } = await supabase.from("profiles").select("id, username").in("id", userIds);
   const usernameById = new Map((profiles ?? []).map((p) => [p.id, p.username]));
 
-  const entries = (rows ?? [])
-    .map((r) => ({
-      username: usernameById.get(r.user_id!) ?? null,
-      score: r.total_score,
-      multiplier: r.scripture_bonus_multiplier,
+  const bestByUser = new Map<string, { score: number; multiplier: number }>();
+  for (const r of rows ?? []) {
+    if (!r.user_id) continue;
+    const existing = bestByUser.get(r.user_id);
+    if (!existing || r.total_score > existing.score) {
+      bestByUser.set(r.user_id, { score: r.total_score, multiplier: r.scripture_bonus_multiplier });
+    }
+  }
+
+  const entries = [...bestByUser.entries()]
+    .map(([userId, best]) => ({
+      username: usernameById.get(userId) ?? null,
+      score: best.score,
+      multiplier: best.multiplier,
     }))
-    .filter((e) => e.username !== null);
+    .filter((e): e is { username: string; score: number; multiplier: number } => e.username !== null)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, LIMIT);
 
   return NextResponse.json({ range, entries });
 }

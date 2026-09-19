@@ -174,12 +174,20 @@ export type AccountMeResponse =
   | { signedIn: true; hasProfile: false }
   | { signedIn: true; hasProfile: true; username: string };
 
+export type PlayerStatsHistoryEntry = {
+  dayNumber: number;
+  date: string;
+  score: number;
+  multiplier: number;
+};
+
 export type PlayerStats = {
   played: number;
   dayStreak: number;
   averageScore: number;
   bestScore: number;
   averageMultiplier: number;
+  history: PlayerStatsHistoryEntry[];
 };
 
 export type LeaderboardRange = "today" | "week" | "all";
