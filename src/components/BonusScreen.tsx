@@ -3,10 +3,21 @@
 import { useMemo, useState } from "react";
 import { fetchJson } from "@/lib/fetchJson";
 import { getBooksForCanon } from "@/lib/content/bibleBooks";
-import { BONUS_LEVEL_LABELS, BONUS_MULTIPLIERS } from "@/lib/content/scriptureBonusScoring";
-import type { DailySetSummary, ScriptureBonusLevel, SubmitBonusRequest, SubmitBonusResponse, Testament } from "@/lib/types";
+import {
+  BONUS_INCORRECT_MULTIPLIER,
+  BONUS_LEVEL_LABELS,
+  BONUS_MULTIPLIERS,
+} from "@/lib/content/scriptureBonusScoring";
+import type {
+  DailySetSummary,
+  ScriptureBonusGuessLevel,
+  ScriptureBonusLevel,
+  SubmitBonusRequest,
+  SubmitBonusResponse,
+  Testament,
+} from "@/lib/types";
 
-const LEVELS: ScriptureBonusLevel[] = ["testament", "book", "chapter", "verse"];
+const GUESS_LEVELS: ScriptureBonusGuessLevel[] = ["testament", "book", "chapter", "verse"];
 
 export function BonusScreen({
   dailySet,
@@ -38,19 +49,23 @@ export function BonusScreen({
   }, [bookQuery, books]);
 
   const canSubmit =
-    level === "testament"
-      ? testament !== null
-      : level === "book"
-        ? bookQuery.trim().length > 0
-        : level === "chapter"
-          ? bookQuery.trim().length > 0 && chapter.trim().length > 0
-          : bookQuery.trim().length > 0 && chapter.trim().length > 0 && verse.trim().length > 0;
+    level === "skip"
+      ? true
+      : level === "testament"
+        ? testament !== null
+        : level === "book"
+          ? bookQuery.trim().length > 0
+          : level === "chapter"
+            ? bookQuery.trim().length > 0 && chapter.trim().length > 0
+            : bookQuery.trim().length > 0 && chapter.trim().length > 0 && verse.trim().length > 0;
 
   const submitGuess = async () => {
     if (!canSubmit || submitting) return;
 
     let payload: SubmitBonusRequest;
-    if (level === "testament") {
+    if (level === "skip") {
+      payload = { level: "skip" };
+    } else if (level === "testament") {
       payload = { level: "testament", testament: testament! };
     } else if (level === "book") {
       payload = { level: "book", book: bookQuery.trim() };
@@ -76,20 +91,26 @@ export function BonusScreen({
   };
 
   if (reveal) {
+    const tone = reveal.correct === true ? "text-olive" : reveal.correct === false ? "text-indigo-dim" : "text-stone-dark";
+    const headline =
+      reveal.correct === true ? "Correct" : reveal.correct === false ? "Not quite" : "No guess made";
+    const multiplierNote =
+      reveal.correct === true
+        ? `×${reveal.multiplier.toFixed(2)} on your Ascent score`
+        : reveal.correct === false
+          ? `×${reveal.multiplier.toFixed(2)} penalty on your Ascent score`
+          : "×1.00 — no change to your Ascent score";
+
     return (
       <div className="mx-auto flex w-full max-w-xl flex-1 flex-col justify-center gap-6 px-6 py-16">
         <p className="font-serif-heading text-sm uppercase tracking-[0.2em] text-gold">
           Scripture Bonus
         </p>
         <div className="animate-rise-in rounded-2xl border border-gold-soft bg-white/70 p-6">
-          <p className={`font-serif-heading text-2xl font-semibold ${reveal.correct ? "text-olive" : "text-indigo-dim"}`}>
-            {reveal.correct ? "Correct" : "Not quite"} — {reveal.book} · {reveal.referenceDisplay}
+          <p className={`font-serif-heading text-2xl font-semibold ${tone}`}>
+            {headline} — {reveal.book} · {reveal.referenceDisplay}
           </p>
-          <p className="mt-1 text-gold">
-            {reveal.correct
-              ? `×${reveal.multiplier.toFixed(2)} on your Ascent score`
-              : "No multiplier this time — ×1.00"}
-          </p>
+          <p className="mt-1 text-gold">{multiplierNote}</p>
           <p className="mt-4 text-ink">{reveal.contextNote}</p>
           <p className="mt-4 text-xs text-stone">{reveal.translation}</p>
         </div>
@@ -115,10 +136,12 @@ export function BonusScreen({
 
       <div>
         <p className="text-sm text-stone-dark">
-          Choose how precisely you&apos;ll guess. You get one shot, so pick your risk level.
+          Choose how precisely you&apos;ll guess. You get one shot — a wrong guess costs a ×
+          {BONUS_INCORRECT_MULTIPLIER.toFixed(2)} penalty on your Ascent score. Not sure? Pick
+          &quot;I don&apos;t know&quot; below for no risk.
         </p>
         <div className="mt-3 grid grid-cols-2 gap-2">
-          {LEVELS.map((l) => (
+          {GUESS_LEVELS.map((l) => (
             <button
               key={l}
               type="button"
@@ -138,6 +161,22 @@ export function BonusScreen({
             </button>
           ))}
         </div>
+        <button
+          type="button"
+          onClick={() => {
+            setLevel("skip");
+            setError(null);
+          }}
+          aria-pressed={level === "skip"}
+          className={`mt-2 w-full rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
+            level === "skip"
+              ? "border-stone-dark bg-stone-dark text-parchment"
+              : "border-stone/40 bg-white/40 text-stone-dark hover:border-stone-dark"
+          }`}
+        >
+          {BONUS_LEVEL_LABELS.skip}
+          <span className="block text-xs opacity-80">×1.00 — no risk</span>
+        </button>
       </div>
 
       {level === "testament" ? (
@@ -159,63 +198,65 @@ export function BonusScreen({
           ))}
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
-          <div className="relative">
-            <label htmlFor="bonus-book-input" className="sr-only">
-              Search Bible books
-            </label>
-            <input
-              id="bonus-book-input"
-              type="text"
-              value={bookQuery}
-              onChange={(e) => setBookQuery(e.target.value)}
-              placeholder="Search Bible books…"
-              className="min-h-[3rem] w-full rounded-xl border border-stone/40 bg-white px-4 text-lg text-ink focus:border-indigo"
-              autoComplete="off"
-            />
-            {suggestions.length > 0 && (
-              <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border border-stone/30 bg-white shadow-md">
-                {suggestions.map((book) => (
-                  <li key={book}>
-                    <button
-                      type="button"
-                      onClick={() => setBookQuery(book)}
-                      className="block w-full px-4 py-2 text-left text-ink hover:bg-parchment-dim"
-                    >
-                      {book}
-                    </button>
-                  </li>
-                ))}
-              </ul>
+        level !== "skip" && (
+          <div className="flex flex-col gap-3">
+            <div className="relative">
+              <label htmlFor="bonus-book-input" className="sr-only">
+                Search Bible books
+              </label>
+              <input
+                id="bonus-book-input"
+                type="text"
+                value={bookQuery}
+                onChange={(e) => setBookQuery(e.target.value)}
+                placeholder="Search Bible books…"
+                className="min-h-[3rem] w-full rounded-xl border border-stone/40 bg-white px-4 text-lg text-ink focus:border-indigo"
+                autoComplete="off"
+              />
+              {suggestions.length > 0 && (
+                <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border border-stone/30 bg-white shadow-md">
+                  {suggestions.map((book) => (
+                    <li key={book}>
+                      <button
+                        type="button"
+                        onClick={() => setBookQuery(book)}
+                        className="block w-full px-4 py-2 text-left text-ink hover:bg-parchment-dim"
+                      >
+                        {book}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            {(level === "chapter" || level === "verse") && (
+              <label className="flex items-center gap-2 text-sm text-stone-dark">
+                Chapter
+                <input
+                  type="number"
+                  min={1}
+                  value={chapter}
+                  onChange={(e) => setChapter(e.target.value)}
+                  className="min-h-[2.75rem] w-24 rounded-xl border border-stone/40 bg-white px-3 text-lg text-ink focus:border-indigo"
+                />
+              </label>
+            )}
+
+            {level === "verse" && (
+              <label className="flex items-center gap-2 text-sm text-stone-dark">
+                Verse
+                <input
+                  type="number"
+                  min={1}
+                  value={verse}
+                  onChange={(e) => setVerse(e.target.value)}
+                  className="min-h-[2.75rem] w-24 rounded-xl border border-stone/40 bg-white px-3 text-lg text-ink focus:border-indigo"
+                />
+              </label>
             )}
           </div>
-
-          {(level === "chapter" || level === "verse") && (
-            <label className="flex items-center gap-2 text-sm text-stone-dark">
-              Chapter
-              <input
-                type="number"
-                min={1}
-                value={chapter}
-                onChange={(e) => setChapter(e.target.value)}
-                className="min-h-[2.75rem] w-24 rounded-xl border border-stone/40 bg-white px-3 text-lg text-ink focus:border-indigo"
-              />
-            </label>
-          )}
-
-          {level === "verse" && (
-            <label className="flex items-center gap-2 text-sm text-stone-dark">
-              Verse
-              <input
-                type="number"
-                min={1}
-                value={verse}
-                onChange={(e) => setVerse(e.target.value)}
-                className="min-h-[2.75rem] w-24 rounded-xl border border-stone/40 bg-white px-3 text-lg text-ink focus:border-indigo"
-              />
-            </label>
-          )}
-        </div>
+        )
       )}
 
       {error && <p className="text-sm text-indigo-dim">{error}</p>}
@@ -226,7 +267,7 @@ export function BonusScreen({
         disabled={submitting || !canSubmit}
         className="w-full rounded-full bg-indigo px-6 py-4 text-lg font-medium text-parchment disabled:opacity-50"
       >
-        Lock In Guess
+        Lock In
       </button>
     </div>
   );

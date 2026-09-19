@@ -8,7 +8,8 @@ export type AnswerTier =
   | "holy-of-holies"
   | "third-heaven";
 export type SubmittedAnswerResult = "accepted" | "invalid";
-export type ScriptureBonusLevel = "testament" | "book" | "chapter" | "verse";
+export type ScriptureBonusGuessLevel = "testament" | "book" | "chapter" | "verse";
+export type ScriptureBonusLevel = ScriptureBonusGuessLevel | "skip";
 export type Testament = "Old" | "New";
 
 export type BibleReference = {
@@ -92,10 +93,11 @@ export type SubmitBonusRequest =
   | { level: "testament"; testament: Testament }
   | { level: "book"; book: string }
   | { level: "chapter"; book: string; chapter: number }
-  | { level: "verse"; book: string; chapter: number; verse: number };
+  | { level: "verse"; book: string; chapter: number; verse: number }
+  | { level: "skip" };
 
 export type SubmitBonusResponse = {
-  correct: boolean;
+  correct: boolean | null;
   level: ScriptureBonusLevel;
   multiplier: number;
   book: string;

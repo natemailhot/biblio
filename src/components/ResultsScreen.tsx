@@ -107,7 +107,7 @@ export function ResultsScreen({
     "",
     grid,
     "",
-    `Scripture Bonus: ${results.scriptureBonusCorrect ? "✓" : "✗"} ×${results.scriptureBonusMultiplier.toFixed(2)}`,
+    `Scripture Bonus: ${results.scriptureBonusCorrect === true ? "✓" : results.scriptureBonusCorrect === false ? "✗" : "—"} ×${results.scriptureBonusMultiplier.toFixed(2)}`,
   ].join("\n");
 
   const handleShare = async () => {
@@ -151,7 +151,9 @@ export function ResultsScreen({
           </p>
           <p className="text-xs text-stone">
             {results.scriptureBonusLevel
-              ? `${results.scriptureBonusCorrect ? "Correct" : "Missed"} · ${BONUS_LEVEL_LABELS[results.scriptureBonusLevel]}`
+              ? results.scriptureBonusLevel === "skip"
+                ? "Skipped"
+                : `${results.scriptureBonusCorrect ? "Correct" : "Missed"} · ${BONUS_LEVEL_LABELS[results.scriptureBonusLevel]}`
               : "Not attempted"}
           </p>
         </div>

@@ -2,15 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { normalizeAnswer } from "@/lib/answers/normalize";
 import { getTestamentForBook } from "@/lib/content/bibleBooks";
-import { BONUS_MULTIPLIERS } from "@/lib/content/scriptureBonusScoring";
+import {
+  BONUS_INCORRECT_MULTIPLIER,
+  BONUS_MULTIPLIERS,
+  BONUS_SKIP_MULTIPLIER,
+} from "@/lib/content/scriptureBonusScoring";
 import type { ScriptureBonusLevel, SubmitBonusResponse, Testament } from "@/lib/types";
 
-const VALID_LEVELS: ScriptureBonusLevel[] = ["testament", "book", "chapter", "verse"];
+const VALID_LEVELS: ScriptureBonusLevel[] = ["testament", "book", "chapter", "verse", "skip"];
 
 // Scores the Scripture Bonus as a multiplier on the Ascent score, based on
 // how precisely the player guesses the verse's location. The player
 // chooses exactly one precision level and gets exactly one guess — no
-// retries, unlike the Ascent questions. Runs independently of the Ascent
+// retries, unlike the Ascent questions. A wrong guess costs a x0.75
+// penalty; explicitly choosing "I don't know" is neutral (x1.00, same as
+// a correct guess having no effect). Runs independently of the Ascent
 // timer/duration checks.
 export async function POST(
   req: NextRequest,
@@ -62,49 +68,55 @@ export async function POST(
     return NextResponse.json({ error: "Scripture Bonus not found" }, { status: 404 });
   }
 
-  const acceptedBooksNormalized = [bonus.book, ...(bonus.accepted_book_aliases ?? [])].map(normalizeAnswer);
-  const actualTestament = getTestamentForBook(bonus.canon_scope, bonus.book);
+  let correct: boolean | null = null;
+  let multiplier = BONUS_SKIP_MULTIPLIER;
+  let answerDisplay = "I don't know";
 
-  let correct = false;
-  let answerDisplay = "";
+  if (level !== "skip") {
+    const acceptedBooksNormalized = [bonus.book, ...(bonus.accepted_book_aliases ?? [])].map(normalizeAnswer);
+    const actualTestament = getTestamentForBook(bonus.canon_scope, bonus.book);
 
-  if (level === "testament") {
-    const testament = body?.testament as Testament | undefined;
-    if (testament !== "Old" && testament !== "New") {
-      return NextResponse.json({ error: "testament must be 'Old' or 'New'" }, { status: 400 });
-    }
-    correct = actualTestament !== null && testament === actualTestament;
-    answerDisplay = `${testament} Testament`;
-  } else {
-    const book = body?.book as string | undefined;
-    if (!book || !book.trim()) {
-      return NextResponse.json({ error: "book is required" }, { status: 400 });
-    }
-    const bookMatches = acceptedBooksNormalized.includes(normalizeAnswer(book));
-
-    if (level === "book") {
-      correct = bookMatches;
-      answerDisplay = book;
-    } else if (level === "chapter") {
-      const chapter = Number(body?.chapter);
-      if (!Number.isInteger(chapter)) {
-        return NextResponse.json({ error: "chapter is required" }, { status: 400 });
+    if (level === "testament") {
+      const testament = body?.testament as Testament | undefined;
+      if (testament !== "Old" && testament !== "New") {
+        return NextResponse.json({ error: "testament must be 'Old' or 'New'" }, { status: 400 });
       }
-      correct = bookMatches && chapter === bonus.chapter;
-      answerDisplay = `${book} ${chapter}`;
+      correct = actualTestament !== null && testament === actualTestament;
+      answerDisplay = `${testament} Testament`;
     } else {
-      const chapter = Number(body?.chapter);
-      const verse = Number(body?.verse);
-      if (!Number.isInteger(chapter) || !Number.isInteger(verse)) {
-        return NextResponse.json({ error: "chapter and verse are required" }, { status: 400 });
+      const book = body?.book as string | undefined;
+      if (!book || !book.trim()) {
+        return NextResponse.json({ error: "book is required" }, { status: 400 });
       }
-      const verseInRange = verse >= bonus.verse_start && verse <= (bonus.verse_end ?? bonus.verse_start);
-      correct = bookMatches && chapter === bonus.chapter && verseInRange;
-      answerDisplay = `${book} ${chapter}:${verse}`;
+      const bookMatches = acceptedBooksNormalized.includes(normalizeAnswer(book));
+
+      if (level === "book") {
+        correct = bookMatches;
+        answerDisplay = book;
+      } else if (level === "chapter") {
+        const chapter = Number(body?.chapter);
+        if (!Number.isInteger(chapter)) {
+          return NextResponse.json({ error: "chapter is required" }, { status: 400 });
+        }
+        correct = bookMatches && chapter === bonus.chapter;
+        answerDisplay = `${book} ${chapter}`;
+      } else {
+        const chapter = Number(body?.chapter);
+        const verse = Number(body?.verse);
+        if (!Number.isInteger(chapter) || !Number.isInteger(verse)) {
+          return NextResponse.json({ error: "chapter and verse are required" }, { status: 400 });
+        }
+        const verseInRange = verse >= bonus.verse_start && verse <= (bonus.verse_end ?? bonus.verse_start);
+        correct = bookMatches && chapter === bonus.chapter && verseInRange;
+        answerDisplay = `${book} ${chapter}:${verse}`;
+      }
     }
+
+    multiplier = correct
+      ? BONUS_MULTIPLIERS[level as keyof typeof BONUS_MULTIPLIERS]
+      : BONUS_INCORRECT_MULTIPLIER;
   }
 
-  const multiplier = correct ? BONUS_MULTIPLIERS[level as ScriptureBonusLevel] : 1;
   const totalScore = Math.round(session.ascent_score * multiplier);
 
   await supabase
