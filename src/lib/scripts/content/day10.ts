@@ -64,7 +64,7 @@ export const DAY_10: SeedDay = {
         },
         {
           canonical: "Pharaoh's Daughter",
-          aliases: [],
+          aliases: ["daughter of pharaoh"],
           score: 60,
           tier: "veil",
           references: [{ book: "Exodus", chapterStart: 2, verseStart: 5, verseEnd: 10, display: "Exodus 2:5-10" }],
@@ -105,7 +105,7 @@ export const DAY_10: SeedDay = {
         },
         {
           canonical: "Land Animals and Humans",
-          aliases: [],
+          aliases: ["animals and humans"],
           score: 10,
           tier: "outer-court",
           references: [{ book: "Genesis", chapterStart: 1, verseStart: 24, verseEnd: 31, display: "Genesis 1:24-31" }],
@@ -121,7 +121,7 @@ export const DAY_10: SeedDay = {
         },
         {
           canonical: "Sun, Moon, and Stars",
-          aliases: [],
+          aliases: ["sun and moon", "stars"],
           score: 20,
           tier: "bronze-altar",
           references: [{ book: "Genesis", chapterStart: 1, verseStart: 14, verseEnd: 19, display: "Genesis 1:14-19" }],
@@ -129,7 +129,7 @@ export const DAY_10: SeedDay = {
         },
         {
           canonical: "Dry Land and Seas",
-          aliases: [],
+          aliases: ["dry land", "seas"],
           score: 30,
           tier: "holy-place",
           references: [{ book: "Genesis", chapterStart: 1, verseStart: 9, verseEnd: 10, display: "Genesis 1:9-10" }],
@@ -137,7 +137,7 @@ export const DAY_10: SeedDay = {
         },
         {
           canonical: "Plants and Vegetation",
-          aliases: [],
+          aliases: ["plants", "vegetation"],
           score: 30,
           tier: "holy-place",
           references: [{ book: "Genesis", chapterStart: 1, verseStart: 11, verseEnd: 13, display: "Genesis 1:11-13" }],
@@ -145,7 +145,7 @@ export const DAY_10: SeedDay = {
         },
         {
           canonical: "Sea Creatures and Birds",
-          aliases: [],
+          aliases: ["sea creatures", "birds and fish"],
           score: 60,
           tier: "veil",
           references: [{ book: "Genesis", chapterStart: 1, verseStart: 20, verseEnd: 23, display: "Genesis 1:20-23" }],
@@ -177,7 +177,7 @@ export const DAY_10: SeedDay = {
         },
         {
           canonical: "A Man with Leprosy",
-          aliases: [],
+          aliases: ["leper", "leprosy"],
           score: 10,
           tier: "outer-court",
           references: [{ book: "Mark", chapterStart: 1, verseStart: 40, verseEnd: 42, display: "Mark 1:40-42" }],
@@ -185,7 +185,7 @@ export const DAY_10: SeedDay = {
         },
         {
           canonical: "The Centurion's Servant",
-          aliases: [],
+          aliases: ["centurion"],
           score: 20,
           tier: "bronze-altar",
           references: [{ book: "Matthew", chapterStart: 8, verseStart: 5, verseEnd: 13, display: "Matthew 8:5-13" }],
@@ -193,7 +193,7 @@ export const DAY_10: SeedDay = {
         },
         {
           canonical: "The Paralytic Lowered Through the Roof",
-          aliases: [],
+          aliases: ["paralytic", "man lowered through roof"],
           score: 20,
           tier: "bronze-altar",
           references: [{ book: "Mark", chapterStart: 2, verseStart: 1, verseEnd: 12, display: "Mark 2:1-12" }],
@@ -217,7 +217,7 @@ export const DAY_10: SeedDay = {
         },
         {
           canonical: "The Man with the Withered Hand",
-          aliases: [],
+          aliases: ["withered hand"],
           score: 85,
           tier: "holy-of-holies",
           references: [{ book: "Mark", chapterStart: 3, verseStart: 1, verseEnd: 5, display: "Mark 3:1-5" }],
@@ -225,7 +225,7 @@ export const DAY_10: SeedDay = {
         },
         {
           canonical: "The Man at the Pool of Bethesda",
-          aliases: [],
+          aliases: ["bethesda", "pool of bethesda"],
           score: 100,
           tier: "third-heaven",
           references: [{ book: "John", chapterStart: 5, verseStart: 1, verseEnd: 9, display: "John 5:1-9" }],
@@ -265,7 +265,7 @@ export const DAY_10: SeedDay = {
         },
         {
           canonical: "The King's Garden",
-          aliases: [],
+          aliases: ["king's garden", "kings garden"],
           score: 60,
           tier: "veil",
           references: [{ book: "2 Kings", chapterStart: 25, verseStart: 4, display: "2 Kings 25:4" }],
@@ -281,7 +281,7 @@ export const DAY_10: SeedDay = {
         },
         {
           canonical: "Solomon's Gardens",
-          aliases: [],
+          aliases: ["solomon's garden", "solomons garden"],
           score: 100,
           tier: "third-heaven",
           references: [{ book: "Ecclesiastes", chapterStart: 2, verseStart: 5, display: "Ecclesiastes 2:5" }],

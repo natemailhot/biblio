@@ -40,7 +40,7 @@ export const DAY_08: SeedDay = {
         },
         {
           canonical: "John the Baptist",
-          aliases: [],
+          aliases: ["the baptist", "baptist"],
           score: 20,
           tier: "bronze-altar",
           references: [{ book: "Matthew", chapterStart: 14, verseStart: 3, display: "Matthew 14:3" }],
@@ -100,7 +100,7 @@ export const DAY_08: SeedDay = {
       answers: [
         {
           canonical: "Jeroboam I",
-          aliases: [],
+          aliases: ["jeroboam the first", "jeroboam 1"],
           score: 10,
           tier: "outer-court",
           references: [{ book: "1 Kings", chapterStart: 12, verseStart: 20, display: "1 Kings 12:20" }],
@@ -132,7 +132,7 @@ export const DAY_08: SeedDay = {
         },
         {
           canonical: "Jeroboam II",
-          aliases: [],
+          aliases: ["jeroboam the second", "jeroboam 2"],
           score: 30,
           tier: "holy-place",
           references: [{ book: "2 Kings", chapterStart: 14, verseStart: 23, display: "2 Kings 14:23" }],
@@ -220,7 +220,7 @@ export const DAY_08: SeedDay = {
         },
         {
           canonical: "Golden Bells",
-          aliases: [],
+          aliases: ["bells"],
           score: 60,
           tier: "veil",
           references: [{ book: "Exodus", chapterStart: 28, verseStart: 33, verseEnd: 34, display: "Exodus 28:33-34" }],
@@ -228,7 +228,7 @@ export const DAY_08: SeedDay = {
         },
         {
           canonical: "Gold Plate on the Turban",
-          aliases: [],
+          aliases: ["gold plate", "turban plate"],
           score: 100,
           tier: "third-heaven",
           references: [{ book: "Exodus", chapterStart: 28, verseStart: 36, display: "Exodus 28:36" }],

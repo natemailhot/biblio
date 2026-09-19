@@ -195,7 +195,7 @@ export const DAY_02: SeedDay = {
       answers: [
         {
           canonical: "Parting the Red Sea",
-          aliases: [],
+          aliases: ["red sea", "parting the sea"],
           score: 10,
           tier: "outer-court",
           references: [{ book: "Exodus", chapterStart: 14, verseStart: 21, verseEnd: 22, display: "Exodus 14:21-22" }],
@@ -212,7 +212,7 @@ export const DAY_02: SeedDay = {
         },
         {
           canonical: "Staff into a Serpent",
-          aliases: [],
+          aliases: ["staff", "staff to snake"],
           score: 20,
           tier: "bronze-altar",
           references: [{ book: "Exodus", chapterStart: 4, verseStart: 2, verseEnd: 4, display: "Exodus 4:2-4" }],
@@ -220,7 +220,7 @@ export const DAY_02: SeedDay = {
         },
         {
           canonical: "Water from the Rock",
-          aliases: [],
+          aliases: ["water from rock"],
           score: 20,
           tier: "bronze-altar",
           references: [{ book: "Exodus", chapterStart: 17, verseStart: 6, display: "Exodus 17:6" }],
@@ -228,7 +228,7 @@ export const DAY_02: SeedDay = {
         },
         {
           canonical: "Hand Turning Leprous",
-          aliases: [],
+          aliases: ["leprous hand"],
           score: 30,
           tier: "holy-place",
           references: [{ book: "Exodus", chapterStart: 4, verseStart: 6, verseEnd: 7, display: "Exodus 4:6-7" }],
@@ -237,7 +237,7 @@ export const DAY_02: SeedDay = {
         },
         {
           canonical: "Bronze Serpent",
-          aliases: ["the bronze snake"],
+          aliases: ["the bronze snake", "bronze snake", "nehushtan"],
           score: 60,
           tier: "veil",
           references: [{ book: "Numbers", chapterStart: 21, verseStart: 8, verseEnd: 9, display: "Numbers 21:8-9" }],
@@ -246,7 +246,7 @@ export const DAY_02: SeedDay = {
         },
         {
           canonical: "Quail from the Sea",
-          aliases: [],
+          aliases: ["quail"],
           score: 85,
           tier: "holy-of-holies",
           references: [{ book: "Exodus", chapterStart: 16, verseStart: 13, display: "Exodus 16:13" }],
@@ -254,7 +254,7 @@ export const DAY_02: SeedDay = {
         },
         {
           canonical: "The Earth Swallowing Korah",
-          aliases: [],
+          aliases: ["korah", "swallowing korah"],
           score: 100,
           tier: "third-heaven",
           references: [{ book: "Numbers", chapterStart: 16, verseStart: 31, verseEnd: 33, display: "Numbers 16:31-33" }],
@@ -417,7 +417,7 @@ export const DAY_02: SeedDay = {
         },
         {
           canonical: "Great Fish",
-          aliases: [],
+          aliases: ["the great fish", "big fish"],
           score: 30,
           tier: "holy-place",
           references: [{ book: "Jonah", chapterStart: 1, verseStart: 17, display: "Jonah 1:17" }],
@@ -456,6 +456,16 @@ export const DAY_02: SeedDay = {
           references: [{ book: "Tobit", chapterStart: 11, display: "Tobit 11" }],
           explanation:
             "A dog accompanies Tobias and the angel Raphael on their journey and runs ahead of them on the way home.",
+          catholicOnly: true,
+        },
+        {
+          canonical: "The Dragon",
+          aliases: ["dragon", "bel's dragon"],
+          score: 60,
+          tier: "veil",
+          references: [{ book: "Daniel", chapterStart: 14, display: "Daniel 14 (Bel and the Dragon)" }],
+          explanation:
+            "In the \"Bel and the Dragon\" addition to Daniel, Daniel proves a great dragon worshipped by the Babylonians is not a god by feeding it cakes that cause it to burst.",
           catholicOnly: true,
         },
       ],

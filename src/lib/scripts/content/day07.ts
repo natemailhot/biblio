@@ -64,7 +64,7 @@ export const DAY_07: SeedDay = {
         },
         {
           canonical: "The Giant with Six Fingers and Six Toes",
-          aliases: [],
+          aliases: ["six fingers and six toes", "six-fingered giant"],
           score: 85,
           tier: "holy-of-holies",
           references: [{ book: "2 Samuel", chapterStart: 21, verseStart: 20, display: "2 Samuel 21:20" }],
@@ -192,7 +192,7 @@ export const DAY_07: SeedDay = {
         },
         {
           canonical: "Sycamore Tree",
-          aliases: [],
+          aliases: ["sycamore"],
           score: 30,
           tier: "holy-place",
           references: [{ book: "Luke", chapterStart: 19, verseStart: 4, display: "Luke 19:4" }],
@@ -200,7 +200,7 @@ export const DAY_07: SeedDay = {
         },
         {
           canonical: "Mustard Plant",
-          aliases: [],
+          aliases: ["mustard", "mustard tree"],
           score: 30,
           tier: "holy-place",
           references: [{ book: "Matthew", chapterStart: 13, verseStart: 31, verseEnd: 32, display: "Matthew 13:31-32" }],

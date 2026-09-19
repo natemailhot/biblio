@@ -507,7 +507,7 @@ export const DAY_01: SeedDay = {
         },
         {
           canonical: "Table of Showbread",
-          aliases: ["table of the bread of the presence"],
+          aliases: ["table of the bread of the presence", "showbread"],
           score: 20,
           tier: "bronze-altar",
           references: [{ book: "Exodus", chapterStart: 25, verseStart: 23, verseEnd: 30, display: "Exodus 25:23-30" }],

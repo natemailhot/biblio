@@ -153,7 +153,7 @@ export const DAY_05: SeedDay = {
         },
         {
           canonical: "The Centurion",
-          aliases: [],
+          aliases: ["centurion"],
           score: 20,
           tier: "bronze-altar",
           references: [{ book: "Matthew", chapterStart: 27, verseStart: 54, display: "Matthew 27:54" }],
@@ -161,7 +161,7 @@ export const DAY_05: SeedDay = {
         },
         {
           canonical: "Simon of Cyrene",
-          aliases: [],
+          aliases: ["cyrene"],
           score: 30,
           tier: "holy-place",
           references: [{ book: "Matthew", chapterStart: 27, verseStart: 32, display: "Matthew 27:32" }],
@@ -169,7 +169,7 @@ export const DAY_05: SeedDay = {
         },
         {
           canonical: "The Two Criminals Crucified with Jesus",
-          aliases: [],
+          aliases: ["two criminals", "the thieves"],
           score: 60,
           tier: "veil",
           references: [{ book: "Luke", chapterStart: 23, verseStart: 32, verseEnd: 33, display: "Luke 23:32-33" }],
@@ -177,7 +177,7 @@ export const DAY_05: SeedDay = {
         },
         {
           canonical: "Mary the Wife of Clopas",
-          aliases: [],
+          aliases: ["wife of clopas", "clopas"],
           score: 85,
           tier: "holy-of-holies",
           references: [{ book: "John", chapterStart: 19, verseStart: 25, display: "John 19:25" }],
@@ -305,7 +305,7 @@ export const DAY_05: SeedDay = {
         },
         {
           canonical: "The New Covenant",
-          aliases: [],
+          aliases: ["new covenant"],
           score: 30,
           tier: "holy-place",
           references: [{ book: "Jeremiah", chapterStart: 31, verseStart: 31, verseEnd: 34, display: "Jeremiah 31:31-34" }],
@@ -313,7 +313,7 @@ export const DAY_05: SeedDay = {
         },
         {
           canonical: "The Covenant of Circumcision",
-          aliases: [],
+          aliases: ["circumcision"],
           score: 60,
           tier: "veil",
           references: [{ book: "Genesis", chapterStart: 17, verseStart: 9, verseEnd: 14, display: "Genesis 17:9-14" }],
@@ -321,7 +321,7 @@ export const DAY_05: SeedDay = {
         },
         {
           canonical: "The Covenant of Salt",
-          aliases: [],
+          aliases: ["covenant of salt", "salt covenant"],
           score: 85,
           tier: "holy-of-holies",
           references: [{ book: "Numbers", chapterStart: 18, verseStart: 19, display: "Numbers 18:19" }],
@@ -329,7 +329,7 @@ export const DAY_05: SeedDay = {
         },
         {
           canonical: "The Covenant with Phinehas",
-          aliases: [],
+          aliases: ["phinehas covenant", "phinehas"],
           score: 100,
           tier: "third-heaven",
           references: [{ book: "Numbers", chapterStart: 25, verseStart: 10, verseEnd: 13, display: "Numbers 25:10-13" }],

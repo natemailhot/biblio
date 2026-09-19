@@ -88,7 +88,7 @@ export const DAY_06: SeedDay = {
       answers: [
         {
           canonical: "Turning Water into Wine",
-          aliases: [],
+          aliases: ["water into wine", "water to wine"],
           score: 10,
           tier: "outer-court",
           references: [{ book: "John", chapterStart: 2, verseStart: 1, verseEnd: 11, display: "John 2:1-11" }],
@@ -96,7 +96,7 @@ export const DAY_06: SeedDay = {
         },
         {
           canonical: "Feeding the 5,000",
-          aliases: [],
+          aliases: ["feeding the 5000", "feeding five thousand"],
           score: 10,
           tier: "outer-court",
           references: [{ book: "Matthew", chapterStart: 14, verseStart: 13, verseEnd: 21, display: "Matthew 14:13-21" }],
@@ -112,7 +112,7 @@ export const DAY_06: SeedDay = {
         },
         {
           canonical: "Calming the Storm",
-          aliases: [],
+          aliases: ["calming the sea", "stilling the storm"],
           score: 20,
           tier: "bronze-altar",
           references: [{ book: "Mark", chapterStart: 4, verseStart: 35, verseEnd: 41, display: "Mark 4:35-41" }],
@@ -120,7 +120,7 @@ export const DAY_06: SeedDay = {
         },
         {
           canonical: "Healing a Man Born Blind",
-          aliases: [],
+          aliases: ["man born blind", "blind man"],
           score: 30,
           tier: "holy-place",
           references: [{ book: "John", chapterStart: 9, verseStart: 1, verseEnd: 7, display: "John 9:1-7" }],
@@ -128,7 +128,7 @@ export const DAY_06: SeedDay = {
         },
         {
           canonical: "Healing the Centurion's Servant",
-          aliases: [],
+          aliases: ["centurion's servant"],
           score: 60,
           tier: "veil",
           references: [{ book: "Matthew", chapterStart: 8, verseStart: 5, verseEnd: 13, display: "Matthew 8:5-13" }],
@@ -136,7 +136,7 @@ export const DAY_06: SeedDay = {
         },
         {
           canonical: "Catch of 153 Fish",
-          aliases: [],
+          aliases: ["153 fish"],
           score: 85,
           tier: "holy-of-holies",
           references: [{ book: "John", chapterStart: 21, verseStart: 1, verseEnd: 11, display: "John 21:1-11" }],
@@ -145,7 +145,7 @@ export const DAY_06: SeedDay = {
         },
         {
           canonical: "Cursing the Fig Tree",
-          aliases: [],
+          aliases: ["fig tree"],
           score: 100,
           tier: "third-heaven",
           references: [{ book: "Mark", chapterStart: 11, verseStart: 12, verseEnd: 14, display: "Mark 11:12-14" }],
@@ -186,7 +186,7 @@ export const DAY_06: SeedDay = {
         },
         {
           canonical: "Locusts and Wild Honey",
-          aliases: [],
+          aliases: ["locusts", "wild honey"],
           score: 20,
           tier: "bronze-altar",
           references: [{ book: "Matthew", chapterStart: 3, verseStart: 4, display: "Matthew 3:4" }],
@@ -194,7 +194,7 @@ export const DAY_06: SeedDay = {
         },
         {
           canonical: "Passover Lamb",
-          aliases: [],
+          aliases: ["passover"],
           score: 30,
           tier: "holy-place",
           references: [{ book: "Luke", chapterStart: 22, verseStart: 7, verseEnd: 8, display: "Luke 22:7-8" }],
@@ -202,7 +202,7 @@ export const DAY_06: SeedDay = {
         },
         {
           canonical: "Barley Loaves",
-          aliases: [],
+          aliases: ["barley", "loaves"],
           score: 60,
           tier: "veil",
           references: [{ book: "John", chapterStart: 6, verseStart: 9, display: "John 6:9" }],
@@ -210,7 +210,7 @@ export const DAY_06: SeedDay = {
         },
         {
           canonical: "Broiled Fish",
-          aliases: [],
+          aliases: ["fish", "grilled fish"],
           score: 85,
           tier: "holy-of-holies",
           references: [{ book: "Luke", chapterStart: 24, verseStart: 42, verseEnd: 43, display: "Luke 24:42-43" }],
@@ -218,7 +218,7 @@ export const DAY_06: SeedDay = {
         },
         {
           canonical: "Heads of Grain",
-          aliases: [],
+          aliases: ["grain"],
           score: 100,
           tier: "third-heaven",
           references: [{ book: "Matthew", chapterStart: 12, verseStart: 1, display: "Matthew 12:1" }],
@@ -275,7 +275,7 @@ export const DAY_06: SeedDay = {
         },
         {
           canonical: "Sergius Paulus",
-          aliases: [],
+          aliases: ["paulus"],
           score: 60,
           tier: "veil",
           references: [{ book: "Acts", chapterStart: 13, verseStart: 6, verseEnd: 12, display: "Acts 13:6-12" }],
@@ -291,7 +291,7 @@ export const DAY_06: SeedDay = {
         },
         {
           canonical: "Claudius Lysias",
-          aliases: [],
+          aliases: ["lysias"],
           score: 100,
           tier: "third-heaven",
           references: [{ book: "Acts", chapterStart: 23, verseStart: 26, display: "Acts 23:26" }],
@@ -340,7 +340,7 @@ export const DAY_06: SeedDay = {
         },
         {
           canonical: "Ox Goad",
-          aliases: [],
+          aliases: ["goad"],
           score: 30,
           tier: "holy-place",
           references: [{ book: "Judges", chapterStart: 3, verseStart: 31, display: "Judges 3:31" }],
@@ -348,7 +348,7 @@ export const DAY_06: SeedDay = {
         },
         {
           canonical: "Jawbone of a Donkey",
-          aliases: [],
+          aliases: ["jawbone", "donkey jawbone"],
           score: 60,
           tier: "veil",
           references: [{ book: "Judges", chapterStart: 15, verseStart: 15, verseEnd: 16, display: "Judges 15:15-16" }],

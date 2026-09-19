@@ -184,7 +184,7 @@ export const DAY_03: SeedDay = {
       answers: [
         {
           canonical: "The Prodigal Son",
-          aliases: ["the lost son"],
+          aliases: ["the lost son", "prodigal son"],
           score: 10,
           tier: "outer-court",
           references: [{ book: "Luke", chapterStart: 15, verseStart: 11, verseEnd: 32, display: "Luke 15:11-32" }],
@@ -192,7 +192,7 @@ export const DAY_03: SeedDay = {
         },
         {
           canonical: "The Good Samaritan",
-          aliases: [],
+          aliases: ["good samaritan"],
           score: 10,
           tier: "outer-court",
           references: [{ book: "Luke", chapterStart: 10, verseStart: 25, verseEnd: 37, display: "Luke 10:25-37" }],
@@ -200,7 +200,7 @@ export const DAY_03: SeedDay = {
         },
         {
           canonical: "The Sower",
-          aliases: ["parable of the sower"],
+          aliases: ["parable of the sower", "sower"],
           score: 20,
           tier: "bronze-altar",
           references: [{ book: "Matthew", chapterStart: 13, verseStart: 3, verseEnd: 9, display: "Matthew 13:3-9" }],
@@ -208,7 +208,7 @@ export const DAY_03: SeedDay = {
         },
         {
           canonical: "The Mustard Seed",
-          aliases: [],
+          aliases: ["mustard seed"],
           score: 20,
           tier: "bronze-altar",
           references: [{ book: "Matthew", chapterStart: 13, verseStart: 31, verseEnd: 32, display: "Matthew 13:31-32" }],
@@ -216,7 +216,7 @@ export const DAY_03: SeedDay = {
         },
         {
           canonical: "The Lost Sheep",
-          aliases: [],
+          aliases: ["lost sheep"],
           score: 30,
           tier: "holy-place",
           references: [{ book: "Luke", chapterStart: 15, verseStart: 3, verseEnd: 7, display: "Luke 15:3-7" }],
@@ -224,7 +224,7 @@ export const DAY_03: SeedDay = {
         },
         {
           canonical: "The Ten Virgins",
-          aliases: ["the ten bridesmaids"],
+          aliases: ["the ten bridesmaids", "ten virgins", "ten bridesmaids"],
           score: 60,
           tier: "veil",
           references: [{ book: "Matthew", chapterStart: 25, verseStart: 1, verseEnd: 13, display: "Matthew 25:1-13" }],
@@ -232,7 +232,7 @@ export const DAY_03: SeedDay = {
         },
         {
           canonical: "The Persistent Widow",
-          aliases: ["the unjust judge"],
+          aliases: ["the unjust judge", "persistent widow", "unjust judge"],
           score: 85,
           tier: "holy-of-holies",
           references: [{ book: "Luke", chapterStart: 18, verseStart: 1, verseEnd: 8, display: "Luke 18:1-8" }],
@@ -240,7 +240,7 @@ export const DAY_03: SeedDay = {
         },
         {
           canonical: "The Rich Fool",
-          aliases: [],
+          aliases: ["rich fool"],
           score: 100,
           tier: "third-heaven",
           references: [{ book: "Luke", chapterStart: 12, verseStart: 16, verseEnd: 21, display: "Luke 12:16-21" }],
@@ -289,7 +289,7 @@ export const DAY_03: SeedDay = {
         },
         {
           canonical: "Death of the Firstborn",
-          aliases: [],
+          aliases: ["firstborn", "death of firstborn"],
           score: 20,
           tier: "bronze-altar",
           references: [{ book: "Exodus", chapterStart: 12, verseStart: 29, display: "Exodus 12:29" }],
@@ -329,7 +329,7 @@ export const DAY_03: SeedDay = {
         },
         {
           canonical: "Pestilence on Livestock",
-          aliases: ["plague on livestock"],
+          aliases: ["plague on livestock", "pestilence"],
           score: 100,
           tier: "third-heaven",
           references: [{ book: "Exodus", chapterStart: 9, verseStart: 3, verseEnd: 6, display: "Exodus 9:3-6" }],
@@ -394,7 +394,7 @@ export const DAY_03: SeedDay = {
         },
         {
           canonical: "Sea of Glass",
-          aliases: [],
+          aliases: ["glass sea"],
           score: 85,
           tier: "holy-of-holies",
           references: [{ book: "Revelation", chapterStart: 4, verseStart: 6, display: "Revelation 4:6" }],

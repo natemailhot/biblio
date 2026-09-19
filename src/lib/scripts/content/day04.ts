@@ -98,7 +98,7 @@ export const DAY_04: SeedDay = {
         },
         {
           canonical: "Judas Iscariot",
-          aliases: [],
+          aliases: ["judas"],
           score: 60,
           tier: "veil",
           references: [{ book: "Matthew", chapterStart: 10, verseStart: 2, verseEnd: 4, display: "Matthew 10:2-4" }],
@@ -122,7 +122,7 @@ export const DAY_04: SeedDay = {
         },
         {
           canonical: "Simon the Zealot",
-          aliases: [],
+          aliases: ["zealot"],
           score: 100,
           tier: "third-heaven",
           references: [{ book: "Matthew", chapterStart: 10, verseStart: 2, verseEnd: 4, display: "Matthew 10:2-4" }],
@@ -146,7 +146,7 @@ export const DAY_04: SeedDay = {
         },
         {
           canonical: "Jairus's Daughter",
-          aliases: [],
+          aliases: ["daughter of jairus"],
           score: 20,
           tier: "bronze-altar",
           references: [{ book: "Mark", chapterStart: 5, verseStart: 21, verseEnd: 43, display: "Mark 5:21-43" }],
@@ -154,7 +154,7 @@ export const DAY_04: SeedDay = {
         },
         {
           canonical: "The Widow of Nain's Son",
-          aliases: [],
+          aliases: ["nain"],
           score: 60,
           tier: "veil",
           references: [{ book: "Luke", chapterStart: 7, verseStart: 11, verseEnd: 17, display: "Luke 7:11-17" }],
@@ -162,7 +162,7 @@ export const DAY_04: SeedDay = {
         },
         {
           canonical: "Saints Raised at the Crucifixion",
-          aliases: [],
+          aliases: ["saints raised", "the saints"],
           score: 100,
           tier: "third-heaven",
           references: [{ book: "Matthew", chapterStart: 27, verseStart: 52, verseEnd: 53, display: "Matthew 27:52-53" }],
@@ -357,7 +357,7 @@ export const DAY_04: SeedDay = {
       answers: [
         {
           canonical: "Fire from Heaven on Mount Carmel",
-          aliases: [],
+          aliases: ["fire on carmel", "carmel"],
           score: 10,
           tier: "outer-court",
           references: [{ book: "1 Kings", chapterStart: 18, verseStart: 38, display: "1 Kings 18:38" }],
@@ -365,7 +365,7 @@ export const DAY_04: SeedDay = {
         },
         {
           canonical: "Healing Naaman's Leprosy",
-          aliases: [],
+          aliases: ["naaman"],
           score: 10,
           tier: "outer-court",
           references: [{ book: "2 Kings", chapterStart: 5, verseStart: 1, verseEnd: 14, display: "2 Kings 5:1-14" }],
@@ -373,7 +373,7 @@ export const DAY_04: SeedDay = {
         },
         {
           canonical: "Raising the Widow's Son at Zarephath",
-          aliases: [],
+          aliases: ["zarephath"],
           score: 20,
           tier: "bronze-altar",
           references: [{ book: "1 Kings", chapterStart: 17, verseStart: 17, verseEnd: 24, display: "1 Kings 17:17-24" }],
@@ -381,7 +381,7 @@ export const DAY_04: SeedDay = {
         },
         {
           canonical: "Raising the Shunammite's Son",
-          aliases: [],
+          aliases: ["shunammite", "shunammite's son"],
           score: 20,
           tier: "bronze-altar",
           references: [{ book: "2 Kings", chapterStart: 4, verseStart: 32, verseEnd: 37, display: "2 Kings 4:32-37" }],
@@ -389,7 +389,7 @@ export const DAY_04: SeedDay = {
         },
         {
           canonical: "Multiplying the Widow's Oil",
-          aliases: [],
+          aliases: ["widow's oil", "oil"],
           score: 30,
           tier: "holy-place",
           references: [{ book: "2 Kings", chapterStart: 4, verseStart: 1, verseEnd: 7, display: "2 Kings 4:1-7" }],
@@ -397,7 +397,7 @@ export const DAY_04: SeedDay = {
         },
         {
           canonical: "Parting the Jordan River",
-          aliases: [],
+          aliases: ["jordan"],
           score: 30,
           tier: "holy-place",
           references: [{ book: "2 Kings", chapterStart: 2, verseStart: 8, display: "2 Kings 2:8" }],
@@ -405,7 +405,7 @@ export const DAY_04: SeedDay = {
         },
         {
           canonical: "Making an Axe Head Float",
-          aliases: [],
+          aliases: ["axe head", "floating axe head"],
           score: 60,
           tier: "veil",
           references: [{ book: "2 Kings", chapterStart: 6, verseStart: 1, verseEnd: 7, display: "2 Kings 6:1-7" }],
@@ -413,7 +413,7 @@ export const DAY_04: SeedDay = {
         },
         {
           canonical: "Elisha's Bones Reviving a Dead Man",
-          aliases: [],
+          aliases: ["elisha's bones"],
           score: 100,
           tier: "third-heaven",
           references: [{ book: "2 Kings", chapterStart: 13, verseStart: 20, verseEnd: 21, display: "2 Kings 13:20-21" }],
