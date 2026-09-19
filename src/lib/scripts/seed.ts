@@ -128,7 +128,15 @@ async function seedDay(day: SeedDay) {
 }
 
 async function seed() {
+  const supabase = createServiceRoleClient();
+  const { data: existing } = await supabase.from("daily_sets").select("date");
+  const existingDates = new Set((existing ?? []).map((d) => d.date));
+
   for (const day of DAYS) {
+    if (existingDates.has(day.date)) {
+      console.log(`Skipping day ${day.dayNumber} (${day.date}) — already seeded`);
+      continue;
+    }
     await seedDay(day);
   }
 }
