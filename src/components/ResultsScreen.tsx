@@ -39,6 +39,9 @@ function AnswerRow({ a }: { a: RankedAnswer }) {
 function QuestionCard({ q }: { q: QuestionResult }) {
   const hit = q.result === "accepted";
   const [open, setOpen] = useState(false);
+  const [catholicOpen, setCatholicOpen] = useState(false);
+  const mainAnswers = q.allAnswers.filter((a) => !a.isCatholicOnly);
+  const catholicAnswers = q.allAnswers.filter((a) => a.isCatholicOnly);
 
   return (
     <li className="rounded-lg border border-stone/30 bg-white/60 p-4">
@@ -79,11 +82,34 @@ function QuestionCard({ q }: { q: QuestionResult }) {
       </button>
 
       {open && (
-        <ul className="mt-3 flex flex-col gap-1.5 border-t border-stone/20 pt-3">
-          {q.allAnswers.map((a) => (
-            <AnswerRow key={a.canonicalAnswer} a={a} />
-          ))}
-        </ul>
+        <div className="mt-3 border-t border-stone/20 pt-3">
+          <ul className="flex flex-col gap-1.5">
+            {mainAnswers.map((a) => (
+              <AnswerRow key={a.canonicalAnswer} a={a} />
+            ))}
+          </ul>
+
+          {catholicAnswers.length > 0 && (
+            <div className="mt-3 border-t border-stone/20 pt-3">
+              <button
+                type="button"
+                onClick={() => setCatholicOpen((o) => !o)}
+                aria-expanded={catholicOpen}
+                className="text-xs font-medium text-indigo underline decoration-gold-soft underline-offset-4"
+              >
+                {catholicOpen ? "Hide" : "Show"} answers also accepted under the Catholic canon (
+                {catholicAnswers.length})
+              </button>
+              {catholicOpen && (
+                <ul className="mt-2 flex flex-col gap-1.5">
+                  {catholicAnswers.map((a) => (
+                    <AnswerRow key={a.canonicalAnswer} a={a} />
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+        </div>
       )}
     </li>
   );

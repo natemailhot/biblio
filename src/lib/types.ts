@@ -35,6 +35,7 @@ export type ChallengeAnswer = {
   inclusionNotes?: string | null;
   exclusions: string[];
   active: boolean;
+  isCatholicOnly: boolean;
 };
 
 export type ScriptureBonus = {
@@ -113,6 +114,7 @@ export type RankedAnswer = {
   explanation: string;
   references: BibleReference[];
   found: boolean;
+  isCatholicOnly: boolean;
 };
 
 // One question's outcome for the results screen: the player's final guess

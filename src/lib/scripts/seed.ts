@@ -104,6 +104,7 @@ async function seedDay(day: SeedDay) {
           references: answer.references,
           explanation: answer.explanation,
           inclusion_notes: answer.inclusionNotes ?? null,
+          is_catholic_only: answer.catholicOnly ?? false,
         })
         .select("id")
         .single();

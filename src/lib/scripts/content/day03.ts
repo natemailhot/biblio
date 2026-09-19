@@ -21,7 +21,7 @@ export const DAY_03: SeedDay = {
       prompt: "Name a person who spoke with an angel.",
       instructions: "You get one guess.",
       whatCounts:
-        "Any named person the biblical text explicitly describes speaking with an angel (including \"the angel of the LORD\").",
+        "Any named person the biblical text explicitly describes speaking with an angel (including \"the angel of the LORD\"). A few answers from the wider Catholic canon are also accepted — see the results screen for those.",
       answers: [
         {
           canonical: "Mary",
@@ -72,6 +72,16 @@ export const DAY_03: SeedDay = {
           references: [{ book: "Judges", chapterStart: 13, verseStart: 3, verseEnd: 20, display: "Judges 13:3-20" }],
           explanation:
             "The angel of the LORD appears to Manoah and his wife, announcing the birth of Samson.",
+        },
+        {
+          canonical: "Tobit",
+          aliases: [],
+          score: 60,
+          tier: "veil",
+          references: [{ book: "Tobit", chapterStart: 5, chapterEnd: 12, display: "Tobit 5-12" }],
+          explanation:
+            "The angel Raphael, disguised as a traveling companion for Tobit's son, later reveals himself as one of God's seven holy angels.",
+          catholicOnly: true,
         },
         {
           canonical: "Daniel",

@@ -87,7 +87,7 @@ export async function POST(
     const { data: answerRows, error: answersError } = await supabase
       .from("challenge_answers")
       .select(
-        "id, challenge_id, answer_set_version, canonical_answer, normalized_answer, aliases, score, tier, references, explanation, inclusion_notes, exclusions, active"
+        "id, challenge_id, answer_set_version, canonical_answer, normalized_answer, aliases, score, tier, references, explanation, inclusion_notes, exclusions, active, is_catholic_only"
       )
       .eq("challenge_id", challengeId)
       .eq("answer_set_version", challenge.answer_set_version)
@@ -111,6 +111,7 @@ export async function POST(
       inclusionNotes: row.inclusion_notes,
       exclusions: row.exclusions ?? [],
       active: row.active,
+      isCatholicOnly: row.is_catholic_only,
     }));
 
     const matched = findMatchingAnswer(normalizedInput, answers);

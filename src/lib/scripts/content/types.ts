@@ -15,6 +15,10 @@ export type SeedAnswer = {
   references: SeedReference[];
   explanation: string;
   inclusionNotes?: string;
+  // Content from the 7 deuterocanonical/Catholic-canon books, accepted as a
+  // valid live answer but grouped separately in the post-round review so
+  // the question itself stays framed within the default 66-book canon.
+  catholicOnly?: boolean;
 };
 
 export type SeedQuestion = {

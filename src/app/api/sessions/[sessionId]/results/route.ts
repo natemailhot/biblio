@@ -80,7 +80,7 @@ export async function GET(
 
     const { data: answerRows } = await supabase
       .from("challenge_answers")
-      .select("id, canonical_answer, score, tier, references, explanation")
+      .select("id, canonical_answer, score, tier, references, explanation, is_catholic_only")
       .eq("challenge_id", question.id)
       .eq("answer_set_version", question.answer_set_version)
       .eq("active", true)
@@ -109,6 +109,7 @@ export async function GET(
         explanation: a.explanation,
         references: a.references ?? [],
         found: a.id === relevant?.matched_answer_id,
+        isCatholicOnly: a.is_catholic_only,
       })),
     });
   }
