@@ -221,8 +221,8 @@ export const DAY_02: SeedDay = {
         {
           canonical: "Sweetening the Waters of Marah",
           aliases: ["marah", "sweetening the water", "bitter water sweetened"],
-          score: 20,
-          tier: "bronze-altar",
+          score: 60,
+          tier: "veil",
           references: [{ book: "Exodus", chapterStart: 15, verseStart: 22, verseEnd: 25, display: "Exodus 15:22-25" }],
           explanation:
             "Moses throws a piece of wood into the bitter water at Marah, and it becomes sweet to drink.",
