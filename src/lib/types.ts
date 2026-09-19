@@ -36,6 +36,7 @@ export type ChallengeAnswer = {
   exclusions: string[];
   active: boolean;
   isCatholicOnly: boolean;
+  embedding?: number[] | null;
 };
 
 export type ScriptureBonus = {

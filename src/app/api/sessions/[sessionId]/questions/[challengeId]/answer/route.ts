@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { normalizeAnswer, findMatchingAnswer } from "@/lib/answers/match";
 import { findFuzzySuggestion } from "@/lib/answers/fuzzyMatch";
+import { findSemanticSuggestion } from "@/lib/answers/embeddings";
 import type { ChallengeAnswer, SubmitQuestionAnswerResponse } from "@/lib/types";
 
 const TIMED_MODE_GRACE_MS = 2000;
@@ -90,7 +91,7 @@ export async function POST(
     const { data: answerRows, error: answersError } = await supabase
       .from("challenge_answers")
       .select(
-        "id, challenge_id, answer_set_version, canonical_answer, normalized_answer, aliases, score, tier, references, explanation, inclusion_notes, exclusions, active, is_catholic_only"
+        "id, challenge_id, answer_set_version, canonical_answer, normalized_answer, aliases, score, tier, references, explanation, inclusion_notes, exclusions, active, is_catholic_only, embedding"
       )
       .eq("challenge_id", challengeId)
       .eq("answer_set_version", challenge.answer_set_version)
@@ -115,12 +116,14 @@ export async function POST(
       exclusions: row.exclusions ?? [],
       active: row.active,
       isCatholicOnly: row.is_catholic_only,
+      embedding: (row as { embedding?: number[] | null }).embedding ?? null,
     }));
 
     const matched = findMatchingAnswer(normalizedInput, answers);
 
     if (!matched) {
-      const suggestion = findFuzzySuggestion(normalizedInput, answers);
+      const suggestion =
+        findFuzzySuggestion(normalizedInput, answers) ?? (await findSemanticSuggestion(rawInput, answers));
       response = suggestion
         ? {
             result: "invalid",
