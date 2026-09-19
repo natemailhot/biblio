@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { fetchJson } from "@/lib/fetchJson";
-import { PROTESTANT_66_BOOKS } from "@/lib/content/bibleBooks";
+import { getBooksForCanon } from "@/lib/content/bibleBooks";
 import type { DailyChallengeSummary, SubmitBonusResponse } from "@/lib/types";
 
 export function BonusScreen({
@@ -19,11 +19,13 @@ export function BonusScreen({
   const [reveal, setReveal] = useState<SubmitBonusResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const books = useMemo(() => getBooksForCanon(challenge.canonScope), [challenge.canonScope]);
+
   const suggestions = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return [];
-    return PROTESTANT_66_BOOKS.filter((b) => b.toLowerCase().includes(q)).slice(0, 8);
-  }, [query]);
+    return books.filter((b) => b.toLowerCase().includes(q)).slice(0, 8);
+  }, [query, books]);
 
   const submitGuess = async (rawInput: string) => {
     if (!rawInput.trim() || submitting) return;

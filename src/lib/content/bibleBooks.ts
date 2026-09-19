@@ -1,6 +1,6 @@
-// Protestant 66-book canon, in canonical order, for the Scripture Bonus
-// book picker. Matching against the accepted answer still happens
-// server-side; this list only drives the client-side search/autocomplete.
+import type { CanonScope } from "@/lib/types";
+
+// 66-book Protestant canon, in canonical order.
 export const PROTESTANT_66_BOOKS: string[] = [
   "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy",
   "Joshua", "Judges", "Ruth", "1 Samuel", "2 Samuel",
@@ -17,3 +17,38 @@ export const PROTESTANT_66_BOOKS: string[] = [
   "James", "1 Peter", "2 Peter", "1 John", "2 John",
   "3 John", "Jude", "Revelation",
 ];
+
+// 73-book Catholic canon: the Protestant 39 Old Testament books plus the
+// seven deuterocanonical books, in traditional (e.g. NAB) reading order,
+// followed by the same 27 New Testament books.
+export const CATHOLIC_73_BOOKS: string[] = [
+  "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy",
+  "Joshua", "Judges", "Ruth", "1 Samuel", "2 Samuel",
+  "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles", "Ezra",
+  "Nehemiah", "Tobit", "Judith", "Esther", "1 Maccabees",
+  "2 Maccabees", "Job", "Psalms", "Proverbs", "Ecclesiastes",
+  "Song of Solomon", "Wisdom", "Sirach", "Isaiah", "Jeremiah",
+  "Lamentations", "Baruch", "Ezekiel", "Daniel", "Hosea",
+  "Joel", "Amos", "Obadiah", "Jonah", "Micah",
+  "Nahum", "Habakkuk", "Zephaniah", "Haggai", "Zechariah",
+  "Malachi",
+  "Matthew", "Mark", "Luke", "John", "Acts",
+  "Romans", "1 Corinthians", "2 Corinthians", "Galatians", "Ephesians",
+  "Philippians", "Colossians", "1 Thessalonians", "2 Thessalonians",
+  "1 Timothy", "2 Timothy", "Titus", "Philemon", "Hebrews",
+  "James", "1 Peter", "2 Peter", "1 John", "2 John",
+  "3 John", "Jude", "Revelation",
+];
+
+export function getBooksForCanon(canonScope: CanonScope): string[] {
+  switch (canonScope) {
+    case "catholic-73":
+      return CATHOLIC_73_BOOKS;
+    case "protestant-66":
+      return PROTESTANT_66_BOOKS;
+    default:
+      // Orthodox/custom canons aren't modeled yet; fall back to the wider
+      // Catholic list so a valid book is never rejected client-side.
+      return CATHOLIC_73_BOOKS;
+  }
+}

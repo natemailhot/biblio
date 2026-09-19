@@ -39,7 +39,7 @@ async function seed() {
       instructions: "Type as many people as you can before time runs out.",
       what_counts:
         "Count named people for whom the biblical text explicitly describes direct speech from God. Count each person once, even if there are multiple encounters. Use the product's defined 66-book canon for this challenge.",
-      duration_seconds: 90,
+      duration_seconds: 25,
       canon_scope: "protestant-66",
       answer_set_version: "v1",
       scripture_bonus_id: bonus.id,
