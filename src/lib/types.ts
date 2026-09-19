@@ -88,6 +88,9 @@ export type SubmitQuestionAnswerResponse = {
   canonicalAnswer?: string;
   tier?: AnswerTier;
   message: string;
+  // A close-but-not-exact guess: never auto-scored, only offered for the
+  // player to explicitly confirm (resubmitting the suggested text).
+  suggestion?: string;
 };
 
 export type SubmitBonusRequest =

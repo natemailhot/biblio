@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { normalizeAnswer, findMatchingAnswer } from "@/lib/answers/match";
+import { findFuzzySuggestion } from "@/lib/answers/fuzzyMatch";
 import type { ChallengeAnswer, SubmitQuestionAnswerResponse } from "@/lib/types";
 
 const TIMED_MODE_GRACE_MS = 2000;
@@ -117,7 +118,15 @@ export async function POST(
     const matched = findMatchingAnswer(normalizedInput, answers);
 
     if (!matched) {
-      response = { result: "invalid", score: 0, message: "Not in today's answer set—try another day." };
+      const suggestion = findFuzzySuggestion(normalizedInput, answers);
+      response = suggestion
+        ? {
+            result: "invalid",
+            score: 0,
+            message: `Not quite — did you mean "${suggestion}"?`,
+            suggestion,
+          }
+        : { result: "invalid", score: 0, message: "Not in today's answer set—try another day." };
     } else {
       matchedAnswerId = matched.id;
       response = {

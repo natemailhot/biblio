@@ -10,6 +10,7 @@ type Feedback = {
   tone: "accepted" | "invalid";
   message: string;
   tier?: AnswerTier;
+  suggestion?: string;
 };
 
 const ASCEND_ANIMATION_MS = 480;
@@ -69,7 +70,7 @@ function QuestionRound({
         setFinalReveal({ tone: "invalid", message: "Time's up — no correct guess." });
       } else {
         setTriedGuesses((g) => [...g, rawInput]);
-        setFeedback({ tone: "invalid", message: res.message });
+        setFeedback({ tone: "invalid", message: res.message, suggestion: res.suggestion });
         setInput("");
         inputRef.current?.focus();
       }
@@ -182,7 +183,19 @@ function QuestionRound({
             </div>
           ) : (
             feedback && (
-              <p className="animate-rise-in text-sm font-medium text-indigo-dim">{feedback.message}</p>
+              <div className="animate-rise-in flex flex-wrap items-center gap-2">
+                <p className="text-sm font-medium text-indigo-dim">{feedback.message}</p>
+                {feedback.suggestion && (
+                  <button
+                    type="button"
+                    onClick={() => submit(feedback.suggestion!, false)}
+                    disabled={busy}
+                    className="rounded-full border border-indigo px-3 py-1 text-xs font-medium text-indigo hover:bg-indigo hover:text-parchment disabled:opacity-50"
+                  >
+                    Yes, that&apos;s what I meant
+                  </button>
+                )}
+              </div>
             )
           )}
         </div>
