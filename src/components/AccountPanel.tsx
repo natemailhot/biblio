@@ -1,75 +1,34 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { createBrowserSupabaseClient } from "@/lib/supabase/browserClient";
-import { fetchJson } from "@/lib/fetchJson";
 import type { AccountMeResponse, PlayerStats } from "@/lib/types";
 
-export function AccountPanel() {
-  const [me, setMe] = useState<AccountMeResponse | null>(null);
-  const [stats, setStats] = useState<PlayerStats | null>(null);
-  const [username, setUsername] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const refresh = async () => {
-    try {
-      const res = await fetchJson<AccountMeResponse>("/api/account/me");
-      setMe(res);
-      if (res.signedIn && res.hasProfile) {
-        const s = await fetchJson<PlayerStats>("/api/stats");
-        setStats(s);
-      }
-    } catch {
-      setMe({ signedIn: false });
-    }
-  };
-
-  useEffect(() => {
-    fetchJson<AccountMeResponse>("/api/account/me")
-      .then(async (res) => {
-        setMe(res);
-        if (res.signedIn && res.hasProfile) {
-          setStats(await fetchJson<PlayerStats>("/api/stats"));
-        }
-      })
-      .catch(() => setMe({ signedIn: false }));
-  }, []);
-
-  const handleSignIn = async () => {
-    const supabase = createBrowserSupabaseClient();
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    });
-  };
-
-  const handleSignOut = async () => {
-    const supabase = createBrowserSupabaseClient();
-    await supabase.auth.signOut();
-    setMe({ signedIn: false });
-    setStats(null);
-  };
-
-  const handleClaimUsername = async () => {
-    if (!username.trim() || submitting) return;
-    setSubmitting(true);
-    setError(null);
-    try {
-      await fetchJson("/api/account/username", { method: "POST", body: JSON.stringify({ username: username.trim() }) });
-      await refresh();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save username.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  if (!me) return null;
-
+// Presentational: content shown inside the account popover. All data and
+// handlers are owned by AccountButton so the trigger avatar and the panel
+// share one fetch instead of each fetching independently.
+export function AccountPanel({
+  me,
+  stats,
+  username,
+  onUsernameChange,
+  submitting,
+  error,
+  onSignIn,
+  onSignOut,
+  onClaimUsername,
+}: {
+  me: AccountMeResponse;
+  stats: PlayerStats | null;
+  username: string;
+  onUsernameChange: (value: string) => void;
+  submitting: boolean;
+  error: string | null;
+  onSignIn: () => void;
+  onSignOut: () => void;
+  onClaimUsername: () => void;
+}) {
   return (
-    <div className="rounded-2xl border border-gold-soft bg-white/60 p-5">
+    <div className="rounded-2xl border border-gold-soft bg-white/95 p-5 shadow-lg backdrop-blur">
       <p className="font-serif-heading text-sm uppercase tracking-[0.2em] text-gold">You</p>
 
       {!me.signedIn && (
@@ -80,7 +39,7 @@ export function AccountPanel() {
           </p>
           <button
             type="button"
-            onClick={handleSignIn}
+            onClick={onSignIn}
             className="mt-3 w-full rounded-full border-2 border-indigo px-6 py-3 font-medium text-indigo transition-colors hover:bg-indigo hover:text-parchment"
           >
             Continue with Google
@@ -99,14 +58,14 @@ export function AccountPanel() {
               id="account-username"
               type="text"
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={(e) => onUsernameChange(e.target.value)}
               placeholder="3-20 letters, numbers, _"
               maxLength={20}
               className="min-h-[2.75rem] flex-1 rounded-xl border border-stone/40 bg-white px-3 text-ink focus:border-indigo"
             />
             <button
               type="button"
-              onClick={handleClaimUsername}
+              onClick={onClaimUsername}
               disabled={submitting || !username.trim()}
               className="rounded-xl bg-indigo px-4 font-medium text-parchment disabled:opacity-50"
             >
@@ -123,7 +82,7 @@ export function AccountPanel() {
             <p className="text-ink">
               Signed in as <span className="font-medium">{me.username}</span>
             </p>
-            <button type="button" onClick={handleSignOut} className="text-sm text-stone-dark underline decoration-gold-soft underline-offset-4">
+            <button type="button" onClick={onSignOut} className="text-sm text-stone-dark underline decoration-gold-soft underline-offset-4">
               Sign out
             </button>
           </div>

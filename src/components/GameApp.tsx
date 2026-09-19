@@ -37,6 +37,10 @@ export function GameApp() {
             setReturning(true);
             setPhase("results");
             track("Returning Player Viewed Results", { dayNumber: d.dayNumber });
+            // No-op if signed out or already linked — see the route for why
+            // this is safer than guessing which session is "theirs" from
+            // timing.
+            fetchJson(`/api/sessions/${completedSessionId}/link`, { method: "POST" }).catch(() => {});
             return;
           } catch {
             // Stale/invalid local record (e.g. content was reseeded) — fall
@@ -82,6 +86,7 @@ export function GameApp() {
       markSessionCompleted(dailySet.id, sessionId);
       setPhase("results");
       track("Day Completed", { dayNumber: dailySet.dayNumber, totalScore: res.totalScore });
+      fetchJson(`/api/sessions/${sessionId}/link`, { method: "POST" }).catch(() => {});
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : "Could not load results.");
       setPhase("error");
