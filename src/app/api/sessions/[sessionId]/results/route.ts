@@ -5,10 +5,12 @@ import type { AnswerTier, FoundAnswer, MissedAnswer, SessionResults } from "@/li
 const MISSED_HIGH_VALUE_LIMIT = 5;
 
 const EMPTY_TIER_COUNTS: Record<AnswerTier, number> = {
-  familiar: 0,
-  known: 0,
-  "deep-cut": 0,
-  "daily-gem": 0,
+  "outer-court": 0,
+  "bronze-altar": 0,
+  "holy-place": 0,
+  veil: 0,
+  "holy-of-holies": 0,
+  "third-heaven": 0,
 };
 
 export async function GET(

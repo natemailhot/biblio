@@ -1,38 +1,63 @@
 import type { AnswerTier } from "@/lib/types";
 
-// Ascent theming for the four score tiers: each stop is closer to God's
-// presence, following the tabernacle's own ascending structure and closing
-// with Paul's "third heaven" (2 Corinthians 12:2) for the rarest answers.
-// Icon + label carry the meaning so tier distinctions never rely on color
-// alone.
+// Six fixed-point ascent stages, following the tabernacle's own path toward
+// God's presence and closing with Paul's "third heaven" (2 Corinthians
+// 12:2). Exactly one answer per challenge sits at Third Heaven / 100 points
+// (the Daily Gem) — enforced by a DB constraint, not just convention. Icon +
+// label carry the meaning so tier distinctions never rely on color alone.
 export const TIER_META: Record<
   AnswerTier,
-  { label: string; icon: string; description: string; colorClass: string }
+  { label: string; points: number; icon: string; description: string; colorClass: string }
 > = {
-  familiar: {
+  "outer-court": {
     label: "Outer Court",
-    icon: "△", // triangle outline
+    points: 10,
+    icon: "△",
     description: "A well-known first step",
-    colorClass: "tier-familiar",
+    colorClass: "tier-outer-court",
   },
-  known: {
-    label: "Holy Place",
-    icon: "▲△", // two triangles
+  "bronze-altar": {
+    label: "Bronze Altar",
+    points: 20,
+    icon: "▲△",
     description: "A solid, recognizable climb",
-    colorClass: "tier-known",
+    colorClass: "tier-bronze-altar",
   },
-  "deep-cut": {
-    label: "Beyond the Veil",
+  "holy-place": {
+    label: "Holy Place",
+    points: 30,
     icon: "▲▲△",
-    description: "Less commonly recalled, clearly valid",
-    colorClass: "tier-deep-cut",
+    description: "Further in, still well attested",
+    colorClass: "tier-holy-place",
   },
-  "daily-gem": {
+  veil: {
+    label: "Beyond the Veil",
+    points: 60,
+    icon: "▲▲▲△",
+    description: "Less commonly recalled, clearly valid",
+    colorClass: "tier-veil",
+  },
+  "holy-of-holies": {
+    label: "Holy of Holies",
+    points: 85,
+    icon: "▲▲▲▲",
+    description: "Rare and precise — few players find this",
+    colorClass: "tier-holy-of-holies",
+  },
+  "third-heaven": {
     label: "Third Heaven",
-    icon: "✦", // four-pointed star
-    description: "Surprising, memorable, textually well-supported",
-    colorClass: "tier-daily-gem",
+    points: 100,
+    icon: "✦",
+    description: "The single most surprising, best-supported answer today",
+    colorClass: "tier-third-heaven",
   },
 };
 
-export const TIER_ORDER: AnswerTier[] = ["familiar", "known", "deep-cut", "daily-gem"];
+export const TIER_ORDER: AnswerTier[] = [
+  "outer-court",
+  "bronze-altar",
+  "holy-place",
+  "veil",
+  "holy-of-holies",
+  "third-heaven",
+];

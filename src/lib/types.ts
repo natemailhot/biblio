@@ -1,6 +1,12 @@
 export type CanonScope = "protestant-66" | "catholic-73" | "orthodox" | "custom";
 export type ChallengeStatus = "draft" | "review" | "scheduled" | "published" | "archived";
-export type AnswerTier = "familiar" | "known" | "deep-cut" | "daily-gem";
+export type AnswerTier =
+  | "outer-court"
+  | "bronze-altar"
+  | "holy-place"
+  | "veil"
+  | "holy-of-holies"
+  | "third-heaven";
 export type SessionMode = "timed" | "accessibility";
 export type SubmittedAnswerResult = "accepted" | "duplicate" | "invalid";
 

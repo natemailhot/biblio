@@ -44,23 +44,34 @@ h1, h2, h3, .font-serif-heading {
 }
 
 /* Non-color tier semantics: each badge carries an icon + label so tier
-   distinctions survive color-vision differences and grayscale printing. */
-.tier-familiar {
-  background: color-mix(in srgb, var(--color-stone) 16%, white);
+   distinctions survive color-vision differences and grayscale printing.
+   Six ascent stages, roughly light -> dark -> gold as points increase. */
+.tier-outer-court {
+  background: color-mix(in srgb, var(--color-stone) 14%, white);
   color: var(--color-stone-dark);
   border-color: var(--color-stone);
 }
-.tier-known {
+.tier-bronze-altar {
+  background: color-mix(in srgb, var(--color-stone-dark) 14%, white);
+  color: var(--color-stone-dark);
+  border-color: var(--color-stone-dark);
+}
+.tier-holy-place {
   background: color-mix(in srgb, var(--color-olive) 14%, white);
   color: var(--color-olive);
   border-color: var(--color-olive);
 }
-.tier-deep-cut {
-  background: color-mix(in srgb, var(--color-indigo) 12%, white);
+.tier-veil {
+  background: color-mix(in srgb, var(--color-indigo-dim) 14%, white);
+  color: var(--color-indigo-dim);
+  border-color: var(--color-indigo-dim);
+}
+.tier-holy-of-holies {
+  background: color-mix(in srgb, var(--color-indigo) 14%, white);
   color: var(--color-indigo);
   border-color: var(--color-indigo);
 }
-.tier-daily-gem {
+.tier-third-heaven {
   background: color-mix(in srgb, var(--color-gold) 18%, white);
   color: #7a5a20;
   border-color: var(--color-gold);

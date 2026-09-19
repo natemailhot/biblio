@@ -1,6 +1,5 @@
-// Seeds day 1 using the "Example Complete Challenge" from plan.md, plus a
-// second sample prompt from the seed-prompts list, so Phase 1 has more than
-// one row to exercise matching/duplicate/versioning logic against.
+// Seeds day 1 using the "Example Complete Challenge" from plan.md, expanded
+// with a fuller curated answer set across all six ascent tiers.
 //
 // Run with: npx tsx src/lib/scripts/seed.ts
 import { createServiceRoleClient } from "../supabase/server";
@@ -57,7 +56,7 @@ async function seed() {
       canonical: "Moses",
       aliases: ["moshe"],
       score: 10,
-      tier: "familiar" as const,
+      tier: "outer-court" as const,
       references: [
         { book: "Exodus", chapterStart: 3, verseStart: 4, verseEnd: 6, display: "Exodus 3:4-6" },
         { book: "Exodus", chapterStart: 33, verseStart: 11, display: "Exodus 33:11" },
@@ -66,10 +65,75 @@ async function seed() {
         "God calls Moses from the burning bush and speaks with him repeatedly during Israel's wilderness journey.",
     },
     {
+      canonical: "Abraham",
+      aliases: ["abram"],
+      score: 10,
+      tier: "outer-court" as const,
+      references: [{ book: "Genesis", chapterStart: 12, verseStart: 1, display: "Genesis 12:1" }],
+      explanation:
+        "Direct divine speech appears throughout Genesis in God's covenant dealings with Abraham.",
+    },
+    {
+      canonical: "Samuel",
+      aliases: [],
+      score: 20,
+      tier: "bronze-altar" as const,
+      references: [{ book: "1 Samuel", chapterStart: 3, verseStart: 1, display: "1 Samuel 3" }],
+      explanation: "God calls the boy Samuel by name in the night in 1 Samuel 3.",
+    },
+    {
+      canonical: "Jacob",
+      aliases: ["israel"],
+      score: 20,
+      tier: "bronze-altar" as const,
+      references: [
+        { book: "Genesis", chapterStart: 28, verseStart: 13, display: "Genesis 28:13" },
+        { book: "Genesis", chapterStart: 46, verseStart: 2, display: "Genesis 46:2" },
+      ],
+      explanation:
+        "God speaks to Jacob at Bethel and again in a night vision on the way to Egypt.",
+      inclusionNotes:
+        "Counted once under his birth name Jacob, even though the text later renames him Israel.",
+    },
+    {
+      canonical: "Solomon",
+      aliases: [],
+      score: 20,
+      tier: "bronze-altar" as const,
+      references: [{ book: "1 Kings", chapterStart: 3, verseStart: 5, display: "1 Kings 3:5" }],
+      explanation: "The LORD appears to Solomon in a dream at Gibeon and speaks with him directly.",
+    },
+    {
+      canonical: "Elijah",
+      aliases: ["elias"],
+      score: 30,
+      tier: "holy-place" as const,
+      references: [{ book: "1 Kings", chapterStart: 19, verseStart: 9, verseEnd: 18, display: "1 Kings 19:9-18" }],
+      explanation:
+        "On Mount Horeb, after the wind, earthquake, and fire, God speaks to Elijah in a still, small voice.",
+    },
+    {
+      canonical: "Isaiah",
+      aliases: [],
+      score: 30,
+      tier: "holy-place" as const,
+      references: [{ book: "Isaiah", chapterStart: 6, verseStart: 1, verseEnd: 8, display: "Isaiah 6:1-8" }],
+      explanation:
+        "In his temple vision, Isaiah hears the Lord ask, \"Whom shall I send?\" and answers directly.",
+    },
+    {
+      canonical: "Job",
+      aliases: [],
+      score: 30,
+      tier: "holy-place" as const,
+      references: [{ book: "Job", chapterStart: 38, verseStart: 1, display: "Job 38:1" }],
+      explanation: "God answers Job out of the whirlwind after Job's long complaint.",
+    },
+    {
       canonical: "Hagar",
       aliases: [],
-      score: 48,
-      tier: "deep-cut" as const,
+      score: 60,
+      tier: "veil" as const,
       references: [
         { book: "Genesis", chapterStart: 16, verseStart: 7, verseEnd: 13, display: "Genesis 16:7-13" },
         { book: "Genesis", chapterStart: 21, verseStart: 17, verseEnd: 19, display: "Genesis 21:17-19" },
@@ -78,39 +142,46 @@ async function seed() {
         "God meets Hagar in the wilderness, gives her a promise concerning Ishmael, and later hears her son's cry.",
     },
     {
+      canonical: "Balaam",
+      aliases: [],
+      score: 60,
+      tier: "veil" as const,
+      references: [{ book: "Numbers", chapterStart: 22, verseStart: 9, verseEnd: 12, display: "Numbers 22:9-12" }],
+      explanation:
+        "God speaks directly to Balaam, a non-Israelite prophet-for-hire, warning him about Balak's request.",
+    },
+    {
+      canonical: "Jesus",
+      aliases: ["jesus christ", "christ", "yeshua"],
+      score: 60,
+      tier: "veil" as const,
+      references: [
+        { book: "Matthew", chapterStart: 3, verseStart: 17, display: "Matthew 3:17" },
+        { book: "Matthew", chapterStart: 26, verseStart: 39, display: "Matthew 26:39" },
+      ],
+      explanation:
+        "The Father's voice addresses Jesus directly at his baptism, and Jesus prays directly to the Father in Gethsemane.",
+      inclusionNotes:
+        "Included for the Gospels' accounts of two-way address between Jesus and the Father — not a claim about the nature of the Trinity, which this game doesn't adjudicate.",
+    },
+    {
+      canonical: "Huldah",
+      aliases: [],
+      score: 85,
+      tier: "holy-of-holies" as const,
+      references: [{ book: "2 Kings", chapterStart: 22, display: "2 Kings 22" }],
+      explanation: "The prophet Huldah is consulted and delivers the Lord's word in 2 Kings 22.",
+    },
+    {
       canonical: "Cain",
       aliases: [],
-      score: 70,
-      tier: "daily-gem" as const,
+      score: 100,
+      tier: "third-heaven" as const,
       references: [
         { book: "Genesis", chapterStart: 4, verseStart: 6, verseEnd: 15, display: "Genesis 4:6-15" },
       ],
       explanation:
         "After Cain becomes angry, God questions, warns, judges, and marks him for protection.",
-    },
-    {
-      canonical: "Abraham",
-      aliases: ["abram"],
-      score: 14,
-      tier: "familiar" as const,
-      references: [{ book: "Genesis", chapterStart: 12, verseStart: 1, display: "Genesis 12:1" }],
-      explanation: "Direct divine speech appears throughout Genesis in God's covenant dealings with Abraham.",
-    },
-    {
-      canonical: "Samuel",
-      aliases: [],
-      score: 22,
-      tier: "known" as const,
-      references: [{ book: "1 Samuel", chapterStart: 3, verseStart: 1, display: "1 Samuel 3" }],
-      explanation: "God calls the boy Samuel by name in the night in 1 Samuel 3.",
-    },
-    {
-      canonical: "Huldah",
-      aliases: [],
-      score: 58,
-      tier: "deep-cut" as const,
-      references: [{ book: "2 Kings", chapterStart: 22, display: "2 Kings 22" }],
-      explanation: "The prophet Huldah is consulted and delivers the Lord's word in 2 Kings 22.",
     },
   ];
 
@@ -129,6 +200,7 @@ async function seed() {
         tier: answer.tier,
         references: answer.references,
         explanation: answer.explanation,
+        inclusion_notes: "inclusionNotes" in answer ? answer.inclusionNotes : null,
       })
       .select("id")
       .single();
@@ -142,7 +214,7 @@ async function seed() {
     .update({ daily_gem_answer_id: dailyGemAnswerId })
     .eq("id", challenge.id);
 
-  console.log("Seeded challenge", challenge.id, "for date 2026-10-01");
+  console.log("Seeded challenge", challenge.id, "for date 2026-10-01 with", answers.length, "answers");
 }
 
 seed()
