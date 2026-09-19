@@ -6,38 +6,38 @@ import { IntroScreen } from "./IntroScreen";
 import { AscentScreen } from "./AscentScreen";
 import { BonusScreen } from "./BonusScreen";
 import { ResultsScreen } from "./ResultsScreen";
-import type { DailyChallengeSummary, SessionResults } from "@/lib/types";
+import type { DailySetSummary, SessionResults } from "@/lib/types";
 
 type Phase = "loading" | "intro" | "ascent" | "bonus" | "results" | "error";
 
 export function GameApp() {
   const [phase, setPhase] = useState<Phase>("loading");
-  const [challenge, setChallenge] = useState<DailyChallengeSummary | null>(null);
+  const [dailySet, setDailySet] = useState<DailySetSummary | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [accessibilityMode, setAccessibilityMode] = useState(false);
   const [results, setResults] = useState<SessionResults | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
-    fetchJson<DailyChallengeSummary>("/api/daily-challenge")
-      .then((c) => {
-        setChallenge(c);
+    fetchJson<DailySetSummary>("/api/daily-set")
+      .then((d) => {
+        setDailySet(d);
         setPhase("intro");
       })
       .catch((err) => {
-        setErrorMessage(err instanceof Error ? err.message : "Could not load today's challenge.");
+        setErrorMessage(err instanceof Error ? err.message : "Could not load today's Ascend.");
         setPhase("error");
       });
   }, []);
 
   const handleBegin = async (accessibility: boolean) => {
-    if (!challenge) return;
+    if (!dailySet) return;
     setAccessibilityMode(accessibility);
     try {
       const res = await fetchJson<{ sessionId: string }>("/api/sessions", {
         method: "POST",
         body: JSON.stringify({
-          challengeId: challenge.id,
+          dailySetId: dailySet.id,
           mode: accessibility ? "accessibility" : "timed",
         }),
       });
@@ -49,7 +49,7 @@ export function GameApp() {
     }
   };
 
-  const handleAscentFinished = () => setPhase("bonus");
+  const handleAllAnswered = () => setPhase("bonus");
 
   const handleBonusDone = async () => {
     if (!sessionId) return;
@@ -66,7 +66,7 @@ export function GameApp() {
   if (phase === "loading") {
     return (
       <div className="flex flex-1 items-center justify-center">
-        <p className="text-stone-dark">Loading today&apos;s Ascent…</p>
+        <p className="text-stone-dark">Loading today&apos;s Ascend…</p>
       </div>
     );
   }
@@ -79,27 +79,27 @@ export function GameApp() {
     );
   }
 
-  if (phase === "intro" && challenge) {
-    return <IntroScreen challenge={challenge} onBegin={handleBegin} />;
+  if (phase === "intro" && dailySet) {
+    return <IntroScreen dailySet={dailySet} onBegin={handleBegin} />;
   }
 
-  if (phase === "ascent" && challenge && sessionId) {
+  if (phase === "ascent" && dailySet && sessionId) {
     return (
       <AscentScreen
-        challenge={challenge}
+        dailySet={dailySet}
         sessionId={sessionId}
         accessibilityMode={accessibilityMode}
-        onFinished={handleAscentFinished}
+        onAllAnswered={handleAllAnswered}
       />
     );
   }
 
-  if (phase === "bonus" && challenge && sessionId) {
-    return <BonusScreen challenge={challenge} sessionId={sessionId} onDone={handleBonusDone} />;
+  if (phase === "bonus" && dailySet && sessionId) {
+    return <BonusScreen dailySet={dailySet} sessionId={sessionId} onDone={handleBonusDone} />;
   }
 
-  if (phase === "results" && results && challenge) {
-    return <ResultsScreen results={results} dateLabel={challenge.date} />;
+  if (phase === "results" && results) {
+    return <ResultsScreen results={results} />;
   }
 
   return null;

@@ -1,36 +1,37 @@
 "use client";
 
 import { useState } from "react";
-import type { DailyChallengeSummary } from "@/lib/types";
+import { BRAND_EMOJI } from "@/lib/content/tiers";
+import type { DailySetSummary } from "@/lib/types";
 
 export function IntroScreen({
-  challenge,
+  dailySet,
   onBegin,
 }: {
-  challenge: DailyChallengeSummary;
+  dailySet: DailySetSummary;
   onBegin: (accessibilityMode: boolean) => void;
 }) {
   const [accessibilityMode, setAccessibilityMode] = useState(false);
+  const questionCount = dailySet.questions.length;
+  const perQuestionSeconds = dailySet.questions[0]?.durationSeconds ?? 15;
 
   return (
     <div className="mx-auto flex w-full max-w-xl flex-1 flex-col justify-center gap-8 px-6 py-16">
       <div className="space-y-3 text-center">
         <p className="font-serif-heading text-sm uppercase tracking-[0.2em] text-gold">
-          Scripture Dive
+          Ascend {BRAND_EMOJI}
         </p>
-        <h1 className="font-serif-heading text-4xl font-semibold text-ink">
-          The Daily Ascent
-        </h1>
+        <h1 className="font-serif-heading text-4xl font-semibold text-ink">Day {dailySet.dayNumber}</h1>
         <p className="text-lg text-stone-dark">
-          One daily Bible challenge. Climb as high as you can — from the Outer
+          {questionCount} questions, one guess each. Climb as high as you can — from the Outer
           Court toward the Third Heaven.
         </p>
       </div>
 
       <div className="rounded-2xl border border-gold-soft bg-white/60 p-6 shadow-sm">
         <p className="text-ink">
-          Every accepted answer has a source, and deeper, less-obvious answers
-          climb higher and score more. After the Ascent, a short Scripture
+          Each question has many possible valid answers, curated by depth — but you only get one
+          guess per question, so make it count. After all {questionCount}, a short Scripture
           Bonus asks you to name the book a verse comes from.
         </p>
       </div>
@@ -54,7 +55,7 @@ export function IntroScreen({
       </button>
 
       <p className="text-center text-xs text-stone">
-        {challenge.durationSeconds}s timed round · No account required
+        {perQuestionSeconds}s per question · No account required
       </p>
     </div>
   );

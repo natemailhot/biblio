@@ -8,7 +8,7 @@ export type AnswerTier =
   | "holy-of-holies"
   | "third-heaven";
 export type SessionMode = "timed" | "accessibility";
-export type SubmittedAnswerResult = "accepted" | "duplicate" | "invalid";
+export type SubmittedAnswerResult = "accepted" | "invalid";
 
 export type BibleReference = {
   book: string;
@@ -17,34 +17,6 @@ export type BibleReference = {
   chapterEnd?: number;
   verseEnd?: number;
   display: string;
-};
-
-export type DailyChallenge = {
-  id: string;
-  date: string;
-  prompt: string;
-  instructions: string;
-  whatCounts: string;
-  durationSeconds: number;
-  canonScope: CanonScope;
-  answerSetVersion: string;
-  dailyGemAnswerId: string | null;
-  scriptureBonusId: string | null;
-  status: ChallengeStatus;
-};
-
-export type DailyChallengeSummary = {
-  id: string;
-  date: string;
-  prompt: string;
-  instructions: string;
-  whatCounts: string;
-  durationSeconds: number;
-  canonScope: CanonScope;
-  scriptureBonus: {
-    id: string;
-    displayText: string;
-  };
 };
 
 export type ChallengeAnswer = {
@@ -80,12 +52,35 @@ export type ScriptureBonus = {
   canonScope: CanonScope;
 };
 
-export type SubmitAnswerRequest = {
-  sessionId: string;
-  rawInput: string;
+// A single one-guess question within a daily set. Public-safe: never
+// carries the answer set.
+export type DailyQuestionSummary = {
+  id: string;
+  slot: number;
+  prompt: string;
+  instructions: string;
+  whatCounts: string;
+  durationSeconds: number;
 };
 
-export type SubmitAnswerResponse = {
+// The full day: 5 questions plus the Scripture Bonus. Public-safe.
+export type DailySetSummary = {
+  id: string;
+  dayNumber: number;
+  date: string;
+  questions: DailyQuestionSummary[];
+  scriptureBonus: {
+    id: string;
+    displayText: string;
+    canonScope: CanonScope;
+  };
+};
+
+export type StartQuestionResponse = {
+  startedAt: string;
+};
+
+export type SubmitQuestionAnswerResponse = {
   result: SubmittedAnswerResult;
   score: number;
   canonicalAnswer?: string;
@@ -102,32 +97,35 @@ export type SubmitBonusResponse = {
   contextNote: string;
 };
 
-export type FoundAnswer = {
-  canonicalAnswer: string;
+// One question's outcome for the results screen: the player's single guess,
+// whether it matched, and (for teaching value) the best answer they missed.
+export type QuestionResult = {
+  slot: number;
+  prompt: string;
+  guess: string;
+  result: SubmittedAnswerResult;
   score: number;
-  tier: AnswerTier;
-  references: BibleReference[];
-  explanation: string;
-};
-
-export type MissedAnswer = {
-  canonicalAnswer: string;
-  score: number;
-  tier: AnswerTier;
-  references: BibleReference[];
-  explanation: string;
+  canonicalAnswer?: string;
+  tier?: AnswerTier;
+  explanation?: string;
+  references?: BibleReference[];
+  isDailyGem: boolean;
+  bestMissedAnswer: {
+    canonicalAnswer: string;
+    score: number;
+    tier: AnswerTier;
+    explanation: string;
+    references: BibleReference[];
+  } | null;
 };
 
 export type SessionResults = {
+  dayNumber: number;
   totalScore: number;
   ascentScore: number;
   scriptureBonusScore: number;
   scriptureBonusCorrect: boolean | null;
-  acceptedCount: number;
-  tierCounts: Record<AnswerTier, number>;
-  foundAnswers: FoundAnswer[];
-  missedHighValueAnswers: MissedAnswer[];
-  dailyGem: (FoundAnswer & { found: boolean }) | null;
+  questionResults: QuestionResult[];
   scriptureBonus: {
     displayText: string;
     book: string;
@@ -136,5 +134,4 @@ export type SessionResults = {
     contextNote: string;
     bonusPoints: number;
   };
-  canonScope: CanonScope;
 };

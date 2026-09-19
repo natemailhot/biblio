@@ -1,17 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
-import type { AnswerTier, FoundAnswer, MissedAnswer, SessionResults } from "@/lib/types";
-
-const MISSED_HIGH_VALUE_LIMIT = 5;
-
-const EMPTY_TIER_COUNTS: Record<AnswerTier, number> = {
-  "outer-court": 0,
-  "bronze-altar": 0,
-  "holy-place": 0,
-  veil: 0,
-  "holy-of-holies": 0,
-  "third-heaven": 0,
-};
+import type { QuestionResult, SessionResults } from "@/lib/types";
 
 export async function GET(
   _req: Request,
@@ -23,7 +12,7 @@ export async function GET(
   const { data: session, error: sessionError } = await supabase
     .from("game_sessions")
     .select(
-      "id, challenge_id, answer_set_version, ascent_score, scripture_bonus_score, scripture_bonus_correct, total_score, completed_at"
+      "id, daily_set_id, ascent_score, scripture_bonus_score, scripture_bonus_correct, total_score, completed_at"
     )
     .eq("id", sessionId)
     .single();
@@ -36,88 +25,92 @@ export async function GET(
     return NextResponse.json({ error: "Session is not finished yet" }, { status: 409 });
   }
 
-  const { data: challenge, error: challengeError } = await supabase
-    .from("daily_challenges")
-    .select("canon_scope, daily_gem_answer_id, scripture_bonus_id")
-    .eq("id", session.challenge_id)
+  const { data: dailySet, error: dailySetError } = await supabase
+    .from("daily_sets")
+    .select("day_number, scripture_bonus_id")
+    .eq("id", session.daily_set_id)
     .single();
 
-  if (challengeError || !challenge?.scripture_bonus_id) {
-    return NextResponse.json({ error: "Challenge not found" }, { status: 404 });
+  if (dailySetError || !dailySet?.scripture_bonus_id) {
+    return NextResponse.json({ error: "Daily set not found" }, { status: 404 });
   }
 
-  const [{ data: answerRows }, { data: submittedRows }, { data: bonusRow }] = await Promise.all([
+  const [{ data: questions }, { data: submitted }, { data: bonusRow }] = await Promise.all([
     supabase
-      .from("challenge_answers")
-      .select("id, canonical_answer, score, tier, references, explanation")
-      .eq("challenge_id", session.challenge_id)
-      .eq("answer_set_version", session.answer_set_version)
-      .eq("active", true),
+      .from("daily_challenges")
+      .select("id, slot, prompt, answer_set_version, daily_gem_answer_id")
+      .eq("daily_set_id", session.daily_set_id)
+      .order("slot", { ascending: true }),
     supabase
       .from("submitted_answers")
-      .select("matched_answer_id")
-      .eq("session_id", sessionId)
-      .eq("result", "accepted"),
+      .select("challenge_id, raw_input, result, matched_answer_id")
+      .eq("session_id", sessionId),
     supabase
       .from("scripture_bonus")
       .select("display_text, book, reference_display, translation, context_note, bonus_points")
-      .eq("id", challenge.scripture_bonus_id)
+      .eq("id", dailySet.scripture_bonus_id)
       .single(),
   ]);
 
+  if (!questions || questions.length === 0) {
+    return NextResponse.json({ error: "Daily set has no questions" }, { status: 500 });
+  }
   if (!bonusRow) {
     return NextResponse.json({ error: "Scripture Bonus not found" }, { status: 404 });
   }
 
-  const foundIds = new Set((submittedRows ?? []).map((r) => r.matched_answer_id).filter(Boolean));
+  const submittedByChallenge = new Map((submitted ?? []).map((s) => [s.challenge_id, s]));
 
-  const toFoundAnswer = (row: NonNullable<typeof answerRows>[number]): FoundAnswer => ({
-    canonicalAnswer: row.canonical_answer,
-    score: row.score,
-    tier: row.tier,
-    references: row.references ?? [],
-    explanation: row.explanation,
-  });
+  const questionResults: QuestionResult[] = [];
 
-  const found: FoundAnswer[] = [];
-  const missedCandidates: (MissedAnswer & { id: string })[] = [];
-  const tierCounts: Record<AnswerTier, number> = { ...EMPTY_TIER_COUNTS };
+  for (const question of questions) {
+    const submission = submittedByChallenge.get(question.id);
 
-  for (const row of answerRows ?? []) {
-    if (foundIds.has(row.id)) {
-      found.push(toFoundAnswer(row));
-      tierCounts[row.tier as AnswerTier] += 1;
-    } else {
-      missedCandidates.push({ id: row.id, ...toFoundAnswer(row) });
-    }
+    const { data: answerRows } = await supabase
+      .from("challenge_answers")
+      .select("id, canonical_answer, score, tier, references, explanation")
+      .eq("challenge_id", question.id)
+      .eq("answer_set_version", question.answer_set_version)
+      .eq("active", true);
+
+    const matched = submission?.matched_answer_id
+      ? (answerRows ?? []).find((a) => a.id === submission.matched_answer_id)
+      : undefined;
+
+    const dailyGemRow = (answerRows ?? []).find((a) => a.id === question.daily_gem_answer_id);
+    const bestMissedAnswer =
+      !matched && dailyGemRow
+        ? {
+            canonicalAnswer: dailyGemRow.canonical_answer,
+            score: dailyGemRow.score,
+            tier: dailyGemRow.tier,
+            explanation: dailyGemRow.explanation,
+            references: dailyGemRow.references ?? [],
+          }
+        : null;
+
+    questionResults.push({
+      slot: question.slot,
+      prompt: question.prompt,
+      guess: submission?.raw_input ?? "",
+      result: submission?.result ?? "invalid",
+      score: matched?.score ?? 0,
+      canonicalAnswer: matched?.canonical_answer,
+      tier: matched?.tier,
+      explanation: matched?.explanation,
+      references: matched?.references ?? [],
+      isDailyGem: matched ? matched.id === question.daily_gem_answer_id : false,
+      bestMissedAnswer,
+    });
   }
 
-  const missedHighValueAnswers: MissedAnswer[] = missedCandidates
-    .sort((a, b) => b.score - a.score)
-    .slice(0, MISSED_HIGH_VALUE_LIMIT)
-    .map(({ canonicalAnswer, score, tier, references, explanation }) => ({
-      canonicalAnswer,
-      score,
-      tier,
-      references,
-      explanation,
-    }));
-
-  const dailyGemRow = (answerRows ?? []).find((row) => row.id === challenge.daily_gem_answer_id);
-  const dailyGem = dailyGemRow
-    ? { ...toFoundAnswer(dailyGemRow), found: foundIds.has(dailyGemRow.id) }
-    : null;
-
   const results: SessionResults = {
+    dayNumber: dailySet.day_number,
     totalScore: session.total_score,
     ascentScore: session.ascent_score,
     scriptureBonusScore: session.scripture_bonus_score,
     scriptureBonusCorrect: session.scripture_bonus_correct,
-    acceptedCount: found.length,
-    tierCounts,
-    foundAnswers: found,
-    missedHighValueAnswers,
-    dailyGem,
+    questionResults,
     scriptureBonus: {
       displayText: bonusRow.display_text,
       book: bonusRow.book,
@@ -126,7 +119,6 @@ export async function GET(
       contextNote: bonusRow.context_note,
       bonusPoints: bonusRow.bonus_points,
     },
-    canonScope: challenge.canon_scope,
   };
 
   return NextResponse.json(results);

@@ -23,7 +23,7 @@ export async function POST(
 
   const { data: session, error: sessionError } = await supabase
     .from("game_sessions")
-    .select("id, challenge_id, total_score, scripture_bonus_answer")
+    .select("id, daily_set_id, total_score, scripture_bonus_answer")
     .eq("id", sessionId)
     .single();
 
@@ -35,14 +35,14 @@ export async function POST(
     return NextResponse.json({ error: "Scripture Bonus already answered" }, { status: 409 });
   }
 
-  const { data: challenge, error: challengeError } = await supabase
-    .from("daily_challenges")
+  const { data: dailySet, error: dailySetError } = await supabase
+    .from("daily_sets")
     .select("scripture_bonus_id")
-    .eq("id", session.challenge_id)
+    .eq("id", session.daily_set_id)
     .single();
 
-  if (challengeError || !challenge?.scripture_bonus_id) {
-    return NextResponse.json({ error: "Challenge has no Scripture Bonus" }, { status: 404 });
+  if (dailySetError || !dailySet?.scripture_bonus_id) {
+    return NextResponse.json({ error: "Daily set has no Scripture Bonus" }, { status: 404 });
   }
 
   const { data: bonus, error: bonusError } = await supabase
@@ -50,7 +50,7 @@ export async function POST(
     .select(
       "book, reference_display, translation, context_note, accepted_book_aliases, bonus_points"
     )
-    .eq("id", challenge.scripture_bonus_id)
+    .eq("id", dailySet.scripture_bonus_id)
     .single();
 
   if (bonusError || !bonus) {

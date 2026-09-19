@@ -14,7 +14,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Scripture Dive — Daily Ascent",
+  title: "Ascend — Daily Bible Challenge",
   description:
     "A daily game for people who want to know the Bible more deeply — one surprising answer at a time.",
 };

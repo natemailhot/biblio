@@ -3,14 +3,14 @@
 import { useMemo, useState } from "react";
 import { fetchJson } from "@/lib/fetchJson";
 import { getBooksForCanon } from "@/lib/content/bibleBooks";
-import type { DailyChallengeSummary, SubmitBonusResponse } from "@/lib/types";
+import type { DailySetSummary, SubmitBonusResponse } from "@/lib/types";
 
 export function BonusScreen({
-  challenge,
+  dailySet,
   sessionId,
   onDone,
 }: {
-  challenge: DailyChallengeSummary;
+  dailySet: DailySetSummary;
   sessionId: string;
   onDone: () => void;
 }) {
@@ -19,7 +19,10 @@ export function BonusScreen({
   const [reveal, setReveal] = useState<SubmitBonusResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const books = useMemo(() => getBooksForCanon(challenge.canonScope), [challenge.canonScope]);
+  const books = useMemo(
+    () => getBooksForCanon(dailySet.scriptureBonus.canonScope),
+    [dailySet.scriptureBonus.canonScope]
+  );
 
   const suggestions = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -77,7 +80,7 @@ export function BonusScreen({
         Scripture Bonus · +25
       </p>
       <blockquote className="font-serif-heading rounded-2xl border border-gold-soft bg-white/60 p-6 text-xl italic text-ink">
-        “{challenge.scriptureBonus.displayText}”
+        “{dailySet.scriptureBonus.displayText}”
       </blockquote>
       <p className="text-lg text-stone-dark">Which book is this from?</p>
 
