@@ -430,6 +430,16 @@ export const DAY_02: SeedDay = {
           explanation:
             "God describes the fearsome sea creature Leviathan, underscoring his supremacy over all creation.",
         },
+        {
+          canonical: "Tobias's Dog",
+          aliases: ["tobit's dog", "dog"],
+          score: 85,
+          tier: "holy-of-holies",
+          references: [{ book: "Tobit", chapterStart: 11, display: "Tobit 11" }],
+          explanation:
+            "A dog accompanies Tobias and the angel Raphael on their journey and runs ahead of them on the way home.",
+          catholicOnly: true,
+        },
       ],
     },
   ],

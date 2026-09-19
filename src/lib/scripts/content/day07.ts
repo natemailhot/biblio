@@ -294,6 +294,16 @@ export const DAY_07: SeedDay = {
           references: [{ book: "Exodus", chapterStart: 38, verseStart: 21, display: "Exodus 38:21" }],
           explanation: "Ithamar, Aaron's youngest son, oversees the record of materials used in the tabernacle.",
         },
+        {
+          canonical: "Onias III",
+          aliases: ["onias"],
+          score: 85,
+          tier: "holy-of-holies",
+          references: [{ book: "2 Maccabees", chapterStart: 3, chapterEnd: 4, display: "2 Maccabees 3-4" }],
+          explanation:
+            "Onias III is a righteous high priest who defends the temple treasury and is later killed through treachery.",
+          catholicOnly: true,
+        },
       ],
     },
     {

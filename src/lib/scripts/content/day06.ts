@@ -371,6 +371,16 @@ export const DAY_06: SeedDay = {
           explanation:
             "David later takes Goliath's own sword, which had been kept behind the ephod at Nob.",
         },
+        {
+          canonical: "Holofernes' Sword",
+          aliases: [],
+          score: 60,
+          tier: "veil",
+          references: [{ book: "Judith", chapterStart: 13, display: "Judith 13" }],
+          explanation:
+            "Judith beheads the enemy general Holofernes with his own sword after he falls into a drunken sleep.",
+          catholicOnly: true,
+        },
       ],
     },
   ],
