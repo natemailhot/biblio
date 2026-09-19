@@ -3,7 +3,36 @@
 import { useState } from "react";
 import { BRAND_EMOJI, MISS_EMOJI, TIER_META } from "@/lib/content/tiers";
 import { TierBadge } from "./TierBadge";
-import type { QuestionResult, SessionResults } from "@/lib/types";
+import type { QuestionResult, RankedAnswer, SessionResults } from "@/lib/types";
+
+function AnswerRow({ a }: { a: RankedAnswer }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <li className={`rounded-md px-2 py-1.5 text-sm ${a.found ? "bg-olive/10" : ""}`}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="flex w-full items-center justify-between gap-3 text-left"
+      >
+        <span className="flex items-center gap-2">
+          <span className={a.found ? "font-medium text-olive" : "text-ink"}>{a.canonicalAnswer}</span>
+          <TierBadge tier={a.tier} />
+        </span>
+        <span className="font-serif-heading text-gold">{a.score}</span>
+      </button>
+      {open && (
+        <div className="mt-1.5 pl-1 text-xs text-stone-dark">
+          <p>{a.explanation}</p>
+          {a.references.length > 0 && (
+            <p className="mt-1 text-stone">{a.references.map((r) => r.display).join(" · ")}</p>
+          )}
+        </div>
+      )}
+    </li>
+  );
+}
 
 function QuestionCard({ q }: { q: QuestionResult }) {
   const hit = q.result === "accepted";
@@ -50,18 +79,7 @@ function QuestionCard({ q }: { q: QuestionResult }) {
       {open && (
         <ul className="mt-3 flex flex-col gap-1.5 border-t border-stone/20 pt-3">
           {q.allAnswers.map((a) => (
-            <li
-              key={a.canonicalAnswer}
-              className={`flex items-center justify-between gap-3 rounded-md px-2 py-1.5 text-sm ${
-                a.found ? "bg-olive/10" : ""
-              }`}
-            >
-              <span className="flex items-center gap-2">
-                <span className={a.found ? "font-medium text-olive" : "text-ink"}>{a.canonicalAnswer}</span>
-                <TierBadge tier={a.tier} />
-              </span>
-              <span className="font-serif-heading text-gold">{a.score}</span>
-            </li>
+            <AnswerRow key={a.canonicalAnswer} a={a} />
           ))}
         </ul>
       )}
