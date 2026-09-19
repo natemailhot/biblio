@@ -1,6 +1,7 @@
 "use client";
 
 import { BRAND_EMOJI } from "@/lib/content/tiers";
+import { AccountPanel } from "./AccountPanel";
 import type { DailySetSummary } from "@/lib/types";
 
 export function IntroScreen({
@@ -45,6 +46,8 @@ export function IntroScreen({
       <p className="text-center text-xs text-stone">
         {perQuestionSeconds}s per question · No account required
       </p>
+
+      <AccountPanel />
     </div>
   );
 }

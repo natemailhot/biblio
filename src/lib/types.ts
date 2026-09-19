@@ -168,3 +168,29 @@ export type SubmitFeedbackRequest = {
   sessionId?: string;
   dailySetId?: string;
 };
+
+export type AccountMeResponse =
+  | { signedIn: false }
+  | { signedIn: true; hasProfile: false }
+  | { signedIn: true; hasProfile: true; username: string };
+
+export type PlayerStats = {
+  played: number;
+  dayStreak: number;
+  averageScore: number;
+  bestScore: number;
+  averageMultiplier: number;
+};
+
+export type LeaderboardRange = "today" | "week" | "all";
+
+export type LeaderboardEntry = {
+  username: string;
+  score: number;
+  multiplier: number;
+};
+
+export type LeaderboardResponse = {
+  range: LeaderboardRange;
+  entries: LeaderboardEntry[];
+};

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
+import { getAuthenticatedUserId } from "@/lib/supabase/serverAuth";
 
 // Starts a game session for a published daily set (5 questions + bonus).
 export async function POST(req: NextRequest) {
@@ -11,6 +12,7 @@ export async function POST(req: NextRequest) {
   }
 
   const supabase = createServiceRoleClient();
+  const userId = await getAuthenticatedUserId();
 
   const { data: dailySet, error: dailySetError } = await supabase
     .from("daily_sets")
@@ -24,7 +26,7 @@ export async function POST(req: NextRequest) {
 
   const { data: session, error: sessionError } = await supabase
     .from("game_sessions")
-    .insert({ daily_set_id: dailySet.id, mode: "timed" })
+    .insert({ daily_set_id: dailySet.id, mode: "timed", user_id: userId })
     .select("id, started_at")
     .single();
 

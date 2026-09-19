@@ -6,6 +6,7 @@ import { BRAND_EMOJI, MISS_EMOJI, TIER_META } from "@/lib/content/tiers";
 import { BONUS_LEVEL_LABELS } from "@/lib/content/scriptureBonusScoring";
 import { fetchJson } from "@/lib/fetchJson";
 import { TierBadge } from "./TierBadge";
+import { AccountPanel } from "./AccountPanel";
 import type { QuestionResult, RankedAnswer, SessionResults } from "@/lib/types";
 
 function AnswerRow({ a }: { a: RankedAnswer }) {
@@ -301,6 +302,8 @@ export function ResultsScreen({
           )}
         </div>
       )}
+
+      <AccountPanel />
 
       <p className="text-center text-sm text-stone-dark">Come back tomorrow for Day {results.dayNumber + 1}.</p>
     </div>
