@@ -95,20 +95,26 @@ export type SubmitQuestionAnswerResponse = {
 
 export type SubmitBonusRequest =
   | { level: "testament"; testament: Testament }
-  | { level: "book"; book: string }
-  | { level: "chapter"; book: string; chapter: number }
-  | { level: "verse"; book: string; chapter: number; verse: number }
+  | { level: "book"; book: string; forceSubmit?: boolean }
+  | { level: "chapter"; book: string; chapter: number; forceSubmit?: boolean }
+  | { level: "verse"; book: string; chapter: number; verse: number; forceSubmit?: boolean }
   | { level: "skip" };
 
-export type SubmitBonusResponse = {
-  correct: boolean | null;
-  level: ScriptureBonusLevel;
-  multiplier: number;
-  book: string;
-  referenceDisplay: string;
-  translation: string;
-  contextNote: string;
-};
+// A close-but-not-exact book-name typo doesn't consume the player's one
+// guess: the round stays open (final: false) until they either confirm the
+// suggestion or explicitly force-submit their original text as final.
+export type SubmitBonusResponse =
+  | {
+      final: true;
+      correct: boolean | null;
+      level: ScriptureBonusLevel;
+      multiplier: number;
+      book: string;
+      referenceDisplay: string;
+      translation: string;
+      contextNote: string;
+    }
+  | { final: false; suggestion: string };
 
 export type RankedAnswer = {
   canonicalAnswer: string;

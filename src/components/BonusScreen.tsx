@@ -19,6 +19,8 @@ import type {
 
 const GUESS_LEVELS: ScriptureBonusGuessLevel[] = ["testament", "book", "chapter", "verse"];
 
+type FinalReveal = Extract<SubmitBonusResponse, { final: true }>;
+
 export function BonusScreen({
   dailySet,
   sessionId,
@@ -34,7 +36,8 @@ export function BonusScreen({
   const [chapter, setChapter] = useState("");
   const [verse, setVerse] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [reveal, setReveal] = useState<SubmitBonusResponse | null>(null);
+  const [reveal, setReveal] = useState<FinalReveal | null>(null);
+  const [pendingSuggestion, setPendingSuggestion] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const books = useMemo(
@@ -59,22 +62,16 @@ export function BonusScreen({
             ? bookQuery.trim().length > 0 && chapter.trim().length > 0
             : bookQuery.trim().length > 0 && chapter.trim().length > 0 && verse.trim().length > 0;
 
-  const submitGuess = async () => {
-    if (!canSubmit || submitting) return;
+  const buildPayload = (bookOverride?: string, forceSubmit?: boolean): SubmitBonusRequest => {
+    const book = bookOverride ?? bookQuery.trim();
+    if (level === "skip") return { level: "skip" };
+    if (level === "testament") return { level: "testament", testament: testament! };
+    if (level === "book") return { level: "book", book, forceSubmit };
+    if (level === "chapter") return { level: "chapter", book, chapter: Number(chapter), forceSubmit };
+    return { level: "verse", book, chapter: Number(chapter), verse: Number(verse), forceSubmit };
+  };
 
-    let payload: SubmitBonusRequest;
-    if (level === "skip") {
-      payload = { level: "skip" };
-    } else if (level === "testament") {
-      payload = { level: "testament", testament: testament! };
-    } else if (level === "book") {
-      payload = { level: "book", book: bookQuery.trim() };
-    } else if (level === "chapter") {
-      payload = { level: "chapter", book: bookQuery.trim(), chapter: Number(chapter) };
-    } else {
-      payload = { level: "verse", book: bookQuery.trim(), chapter: Number(chapter), verse: Number(verse) };
-    }
-
+  const send = async (payload: SubmitBonusRequest) => {
     setSubmitting(true);
     setError(null);
     try {
@@ -82,12 +79,33 @@ export function BonusScreen({
         method: "POST",
         body: JSON.stringify(payload),
       });
-      setReveal(res);
+      if (res.final) {
+        setPendingSuggestion(null);
+        setReveal(res);
+      } else {
+        setPendingSuggestion(res.suggestion);
+      }
     } catch {
       setError("Something went wrong — try again.");
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const submitGuess = () => {
+    if (!canSubmit || submitting) return;
+    send(buildPayload());
+  };
+
+  const confirmSuggestion = () => {
+    if (!pendingSuggestion || submitting) return;
+    setBookQuery(pendingSuggestion);
+    send(buildPayload(pendingSuggestion));
+  };
+
+  const submitAsTyped = () => {
+    if (submitting) return;
+    send(buildPayload(undefined, true));
   };
 
   if (reveal) {
@@ -148,6 +166,7 @@ export function BonusScreen({
               onClick={() => {
                 setLevel(l);
                 setError(null);
+                setPendingSuggestion(null);
               }}
               aria-pressed={level === l}
               className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
@@ -166,6 +185,7 @@ export function BonusScreen({
           onClick={() => {
             setLevel("skip");
             setError(null);
+            setPendingSuggestion(null);
           }}
           aria-pressed={level === "skip"}
           className={`mt-2 w-full rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
@@ -208,7 +228,10 @@ export function BonusScreen({
                 id="bonus-book-input"
                 type="text"
                 value={bookQuery}
-                onChange={(e) => setBookQuery(e.target.value)}
+                onChange={(e) => {
+                  setBookQuery(e.target.value);
+                  setPendingSuggestion(null);
+                }}
                 placeholder="Search Bible books…"
                 className="min-h-[3rem] w-full rounded-xl border border-stone/40 bg-white px-4 text-lg text-ink focus:border-indigo"
                 autoComplete="off"
@@ -259,12 +282,39 @@ export function BonusScreen({
         )
       )}
 
+      {pendingSuggestion && (
+        <div className="animate-rise-in rounded-xl border border-gold-soft bg-white/70 p-4">
+          <p className="text-sm text-ink">
+            Did you mean <span className="font-medium">{pendingSuggestion}</span>? This won&apos;t
+            use up your guess unless you confirm.
+          </p>
+          <div className="mt-3 flex gap-2">
+            <button
+              type="button"
+              onClick={confirmSuggestion}
+              disabled={submitting}
+              className="flex-1 rounded-full bg-indigo px-4 py-2 text-sm font-medium text-parchment disabled:opacity-50"
+            >
+              Yes, that&apos;s what I meant
+            </button>
+            <button
+              type="button"
+              onClick={submitAsTyped}
+              disabled={submitting}
+              className="flex-1 rounded-full border border-stone px-4 py-2 text-sm font-medium text-stone-dark disabled:opacity-50"
+            >
+              No, submit as typed
+            </button>
+          </div>
+        </div>
+      )}
+
       {error && <p className="text-sm text-indigo-dim">{error}</p>}
 
       <button
         type="button"
         onClick={submitGuess}
-        disabled={submitting || !canSubmit}
+        disabled={submitting || !canSubmit || !!pendingSuggestion}
         className="w-full rounded-full bg-indigo px-6 py-4 text-lg font-medium text-parchment disabled:opacity-50"
       >
         Lock In

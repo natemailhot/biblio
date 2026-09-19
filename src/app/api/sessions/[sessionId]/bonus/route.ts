@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { normalizeAnswer } from "@/lib/answers/normalize";
+import { isCloseTypo } from "@/lib/answers/fuzzyMatch";
 import { getTestamentForBook } from "@/lib/content/bibleBooks";
 import {
   BONUS_INCORRECT_MULTIPLIER,
@@ -22,11 +23,13 @@ function stripTrailingReference(raw: string): string {
 
 // Scores the Scripture Bonus as a multiplier on the Ascent score, based on
 // how precisely the player guesses the verse's location. The player
-// chooses exactly one precision level and gets exactly one guess — no
-// retries, unlike the Ascent questions. A wrong guess costs a x0.75
-// penalty; explicitly choosing "I don't know" is neutral (x1.00, same as
-// a correct guess having no effect). Runs independently of the Ascent
-// timer/duration checks.
+// chooses exactly one precision level and gets exactly one real guess — no
+// retries — but a close-but-not-exact typo of the book name doesn't
+// consume that guess: it comes back as `final: false` with a suggestion,
+// and the round only locks once the player confirms (resubmits the
+// suggested spelling) or explicitly force-submits their original text. A
+// wrong final guess costs a x0.75 penalty; "I don't know" is neutral
+// (x1.00). Runs independently of the Ascent timer/duration checks.
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> }
@@ -34,6 +37,7 @@ export async function POST(
   const { sessionId } = await params;
   const body = await req.json().catch(() => null);
   const level = body?.level as string | undefined;
+  const forceSubmit = body?.forceSubmit === true;
 
   if (!level || !VALID_LEVELS.includes(level as ScriptureBonusLevel)) {
     return NextResponse.json({ error: "A valid level is required" }, { status: 400 });
@@ -82,7 +86,8 @@ export async function POST(
   let answerDisplay = "I don't know";
 
   if (level !== "skip") {
-    const acceptedBooksNormalized = [bonus.book, ...(bonus.accepted_book_aliases ?? [])].map(normalizeAnswer);
+    const acceptedBooks = [bonus.book, ...(bonus.accepted_book_aliases ?? [])];
+    const acceptedBooksNormalized = acceptedBooks.map(normalizeAnswer);
     const actualTestament = getTestamentForBook(bonus.canon_scope, bonus.book);
 
     if (level === "testament") {
@@ -97,9 +102,20 @@ export async function POST(
       if (!book || !book.trim()) {
         return NextResponse.json({ error: "book is required" }, { status: 400 });
       }
+      const strippedBook = stripTrailingReference(book);
       const bookMatches =
         acceptedBooksNormalized.includes(normalizeAnswer(book)) ||
-        acceptedBooksNormalized.includes(normalizeAnswer(stripTrailingReference(book)));
+        acceptedBooksNormalized.includes(normalizeAnswer(strippedBook));
+
+      if (!bookMatches && !forceSubmit) {
+        const closeTypo =
+          isCloseTypo(normalizeAnswer(book), acceptedBooks) ||
+          isCloseTypo(normalizeAnswer(strippedBook), acceptedBooks);
+        if (closeTypo) {
+          const pending: SubmitBonusResponse = { final: false, suggestion: bonus.book };
+          return NextResponse.json(pending);
+        }
+      }
 
       if (level === "book") {
         correct = bookMatches;
@@ -143,6 +159,7 @@ export async function POST(
     .eq("id", sessionId);
 
   const response: SubmitBonusResponse = {
+    final: true,
     correct,
     level: level as ScriptureBonusLevel,
     multiplier,

@@ -6,7 +6,7 @@ import type { ChallengeAnswer } from "@/lib/types";
 // letters ("Sinia" for "Sinai") are by far the most common typo shape, and
 // plain Levenshtein charges 2 for them — enough to miss real near-misses
 // under a tight threshold.
-function osaDistance(a: string, b: string): number {
+export function osaDistance(a: string, b: string): number {
   if (a === b) return 0;
   const d: number[][] = Array.from({ length: a.length + 1 }, () => new Array<number>(b.length + 1).fill(0));
   for (let i = 0; i <= a.length; i++) d[i][0] = i;
@@ -58,4 +58,22 @@ export function findFuzzySuggestion(
 
   if (!best || tie) return null;
   return best.canonicalAnswer;
+}
+
+// Single-target version for cases with exactly one correct answer (e.g. the
+// Scripture Bonus book name) rather than a whole answer set. Returns true
+// if the input is a close-but-not-exact typo of any candidate, using the
+// same distance/threshold rule as findFuzzySuggestion.
+export function isCloseTypo(normalizedInput: string, candidates: string[]): boolean {
+  if (normalizedInput.length < 3) return false;
+
+  for (const candidate of candidates) {
+    const normalizedCandidate = normalizeAnswer(candidate);
+    if (!normalizedCandidate) continue;
+    const distance = osaDistance(normalizedInput, normalizedCandidate);
+    if (distance === 0) continue; // exact matches are handled elsewhere
+    const threshold = Math.max(1, Math.round(normalizedCandidate.length * 0.3));
+    if (distance <= threshold) return true;
+  }
+  return false;
 }
