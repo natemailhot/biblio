@@ -50,6 +50,15 @@ export const DAY_02: SeedDay = {
           explanation: "Daniel has his own vision of four great beasts rising from the sea.",
         },
         {
+          canonical: "Samuel",
+          aliases: [],
+          score: 20,
+          tier: "bronze-altar",
+          references: [{ book: "1 Samuel", chapterStart: 3, verseStart: 4, verseEnd: 10, display: "1 Samuel 3:4-10" }],
+          explanation:
+            "As a boy serving in the tabernacle, Samuel hears the LORD calling him in the night and responds, \"Speak, for your servant is listening.\"",
+        },
+        {
           canonical: "Pharaoh",
           aliases: [],
           score: 20,
@@ -473,6 +482,14 @@ export const DAY_02: SeedDay = {
       instructions: "You get one guess.",
       whatCounts: "Any animal or creature explicitly named in the biblical text.",
       answers: [
+        {
+          canonical: "Locusts",
+          aliases: ["locust", "swarm of locusts"],
+          score: 10,
+          tier: "outer-court",
+          references: [{ book: "Exodus", chapterStart: 10, verseStart: 12, verseEnd: 15, display: "Exodus 10:12-15" }],
+          explanation: "Locusts sweep over Egypt in the eighth plague, devouring everything left after the hail.",
+        },
         {
           canonical: "Donkey",
           aliases: ["ass"],
