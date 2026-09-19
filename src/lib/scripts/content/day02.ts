@@ -118,6 +118,15 @@ export const DAY_02: SeedDay = {
           explanation: "Noah's ark comes to rest on the mountains of Ararat.",
         },
         {
+          canonical: "Mount Zion",
+          aliases: ["zion", "mount sion"],
+          score: 10,
+          tier: "outer-court",
+          references: [{ book: "2 Samuel", chapterStart: 5, verseStart: 7, display: "2 Samuel 5:7" }],
+          explanation:
+            "David captures the stronghold of Zion, and the name becomes closely associated with Jerusalem and God's presence throughout the Psalms and prophets.",
+        },
+        {
           canonical: "Mount of Olives",
           aliases: ["olivet"],
           score: 20,
