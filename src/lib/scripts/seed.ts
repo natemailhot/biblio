@@ -153,8 +153,8 @@ async function seed() {
     {
       canonical: "Jesus",
       aliases: ["jesus christ", "christ", "yeshua"],
-      score: 60,
-      tier: "veil" as const,
+      score: 10,
+      tier: "outer-court" as const,
       references: [
         { book: "Matthew", chapterStart: 3, verseStart: 17, display: "Matthew 3:17" },
         { book: "Matthew", chapterStart: 26, verseStart: 39, display: "Matthew 26:39" },
