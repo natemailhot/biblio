@@ -262,6 +262,22 @@ export const DAY_03: SeedDay = {
           explanation: "Frogs cover the land of Egypt.",
         },
         {
+          canonical: "Gnats",
+          aliases: ["lice"],
+          score: 20,
+          tier: "bronze-altar",
+          references: [{ book: "Exodus", chapterStart: 8, verseStart: 16, verseEnd: 17, display: "Exodus 8:16-17" }],
+          explanation: "Aaron strikes the dust and it becomes gnats throughout Egypt — the third plague.",
+        },
+        {
+          canonical: "Flies",
+          aliases: [],
+          score: 20,
+          tier: "bronze-altar",
+          references: [{ book: "Exodus", chapterStart: 8, verseStart: 24, display: "Exodus 8:24" }],
+          explanation: "Dense swarms of flies fill Egypt's houses and land — the fourth plague.",
+        },
+        {
           canonical: "Death of the Firstborn",
           aliases: [],
           score: 20,
