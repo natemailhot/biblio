@@ -219,6 +219,22 @@ export const DAY_02: SeedDay = {
           explanation: "Moses' staff turns into a serpent and back again as a sign for Pharaoh and Israel.",
         },
         {
+          canonical: "Victory Over Amalek",
+          aliases: [
+            "amalek",
+            "battle with amalek",
+            "raising his hands",
+            "holding up his hands",
+            "raised staff over the battle",
+            "rod above his head",
+          ],
+          score: 20,
+          tier: "bronze-altar",
+          references: [{ book: "Exodus", chapterStart: 17, verseStart: 8, verseEnd: 13, display: "Exodus 17:8-13" }],
+          explanation:
+            "As long as Moses holds up his hands (with Aaron and Hur supporting them), Israel prevails over Amalek in battle.",
+        },
+        {
           canonical: "Sweetening the Waters of Marah",
           aliases: ["marah", "sweetening the water", "bitter water sweetened"],
           score: 60,
@@ -415,6 +431,22 @@ export const DAY_02: SeedDay = {
           tier: "bronze-altar",
           references: [{ book: "Daniel", chapterStart: 6, verseStart: 16, verseEnd: 22, display: "Daniel 6:16-22" }],
           explanation: "Daniel is cast into a den of lions and is kept unharmed.",
+        },
+        {
+          canonical: "Ram",
+          aliases: ["ram caught in the thicket", "abraham's ram"],
+          score: 20,
+          tier: "bronze-altar",
+          references: [{ book: "Genesis", chapterStart: 22, verseStart: 13, display: "Genesis 22:13" }],
+          explanation: "Abraham sacrifices a ram caught by its horns in a thicket in place of Isaac.",
+        },
+        {
+          canonical: "Bull",
+          aliases: ["ox", "oxen", "bullock"],
+          score: 10,
+          tier: "outer-court",
+          references: [{ book: "Leviticus", chapterStart: 4, verseStart: 3, display: "Leviticus 4:3" }],
+          explanation: "A young bull is repeatedly prescribed as a sin offering throughout the Levitical sacrificial law.",
         },
         {
           canonical: "Raven",
