@@ -23,7 +23,7 @@ export async function POST(
 
   const { data: session, error: sessionError } = await supabase
     .from("game_sessions")
-    .select("id, challenge_id, mode, started_at, completed_at, dive_score, total_score, answer_set_version")
+    .select("id, challenge_id, mode, started_at, completed_at, ascent_score, total_score, answer_set_version")
     .eq("id", sessionId)
     .single();
 
@@ -148,7 +148,7 @@ export async function POST(
     await supabase
       .from("game_sessions")
       .update({
-        dive_score: session.dive_score + response.score,
+        ascent_score: session.ascent_score + response.score,
         total_score: session.total_score + response.score,
       })
       .eq("id", sessionId);

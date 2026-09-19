@@ -27,6 +27,20 @@ export type DailyChallenge = {
   status: ChallengeStatus;
 };
 
+export type DailyChallengeSummary = {
+  id: string;
+  date: string;
+  prompt: string;
+  instructions: string;
+  whatCounts: string;
+  durationSeconds: number;
+  canonScope: CanonScope;
+  scriptureBonus: {
+    id: string;
+    displayText: string;
+  };
+};
+
 export type ChallengeAnswer = {
   id: string;
   challengeId: string;
@@ -71,4 +85,50 @@ export type SubmitAnswerResponse = {
   canonicalAnswer?: string;
   tier?: AnswerTier;
   message: string;
+};
+
+export type SubmitBonusResponse = {
+  correct: boolean;
+  score: number;
+  book: string;
+  referenceDisplay: string;
+  translation: string;
+  contextNote: string;
+};
+
+export type FoundAnswer = {
+  canonicalAnswer: string;
+  score: number;
+  tier: AnswerTier;
+  references: BibleReference[];
+  explanation: string;
+};
+
+export type MissedAnswer = {
+  canonicalAnswer: string;
+  score: number;
+  tier: AnswerTier;
+  references: BibleReference[];
+  explanation: string;
+};
+
+export type SessionResults = {
+  totalScore: number;
+  ascentScore: number;
+  scriptureBonusScore: number;
+  scriptureBonusCorrect: boolean | null;
+  acceptedCount: number;
+  tierCounts: Record<AnswerTier, number>;
+  foundAnswers: FoundAnswer[];
+  missedHighValueAnswers: MissedAnswer[];
+  dailyGem: (FoundAnswer & { found: boolean }) | null;
+  scriptureBonus: {
+    displayText: string;
+    book: string;
+    referenceDisplay: string;
+    translation: string;
+    contextNote: string;
+    bonusPoints: number;
+  };
+  canonScope: CanonScope;
 };

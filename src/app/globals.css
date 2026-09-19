@@ -1,26 +1,96 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --color-parchment: #f6efdf;
+  --color-parchment-dim: #ece0c6;
+  --color-stone: #8b8271;
+  --color-stone-dark: #5c5647;
+  --color-ink: #262019;
+  --color-indigo: #2f3866;
+  --color-indigo-dim: #454f80;
+  --color-olive: #5f6b47;
+  --color-gold: #ab8347;
+  --color-gold-soft: #d8c39a;
+
+  --background: var(--color-parchment);
+  --foreground: var(--color-ink);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-parchment: var(--color-parchment);
+  --color-parchment-dim: var(--color-parchment-dim);
+  --color-stone: var(--color-stone);
+  --color-stone-dark: var(--color-stone-dark);
+  --color-ink: var(--color-ink);
+  --color-indigo: var(--color-indigo);
+  --color-indigo-dim: var(--color-indigo-dim);
+  --color-olive: var(--color-olive);
+  --color-gold: var(--color-gold);
+  --color-gold-soft: var(--color-gold-soft);
+  --font-serif: var(--font-fraunces);
+  --font-sans: var(--font-inter);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+h1, h2, h3, .font-serif-heading {
+  font-family: var(--font-serif), ui-serif, Georgia, serif;
+}
+
+/* Non-color tier semantics: each badge carries an icon + label so tier
+   distinctions survive color-vision differences and grayscale printing. */
+.tier-familiar {
+  background: color-mix(in srgb, var(--color-stone) 16%, white);
+  color: var(--color-stone-dark);
+  border-color: var(--color-stone);
+}
+.tier-known {
+  background: color-mix(in srgb, var(--color-olive) 14%, white);
+  color: var(--color-olive);
+  border-color: var(--color-olive);
+}
+.tier-deep-cut {
+  background: color-mix(in srgb, var(--color-indigo) 12%, white);
+  color: var(--color-indigo);
+  border-color: var(--color-indigo);
+}
+.tier-daily-gem {
+  background: color-mix(in srgb, var(--color-gold) 18%, white);
+  color: #7a5a20;
+  border-color: var(--color-gold);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-indigo);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-rise-in {
+  animation: rise-in 220ms ease-out;
 }
