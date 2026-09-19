@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { track } from "@vercel/analytics";
 import { fetchJson } from "@/lib/fetchJson";
 import { getCompletedSessionId, markSessionCompleted, clearCompletedSession } from "@/lib/completedSessions";
 import { IntroScreen } from "./IntroScreen";
@@ -35,6 +36,7 @@ export function GameApp() {
             setResults(res);
             setReturning(true);
             setPhase("results");
+            track("Returning Player Viewed Results", { dayNumber: d.dayNumber });
             return;
           } catch {
             // Stale/invalid local record (e.g. content was reseeded) — fall
@@ -60,13 +62,17 @@ export function GameApp() {
       });
       setSessionId(res.sessionId);
       setPhase("ascent");
+      track("Ascent Started", { dayNumber: dailySet.dayNumber });
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : "Could not start the round.");
       setPhase("error");
     }
   };
 
-  const handleAllAnswered = () => setPhase("bonus");
+  const handleAllAnswered = () => {
+    setPhase("bonus");
+    if (dailySet) track("Ascent Completed", { dayNumber: dailySet.dayNumber });
+  };
 
   const handleBonusDone = async () => {
     if (!sessionId || !dailySet) return;
@@ -75,6 +81,7 @@ export function GameApp() {
       setResults(res);
       markSessionCompleted(dailySet.id, sessionId);
       setPhase("results");
+      track("Day Completed", { dayNumber: dailySet.dayNumber, totalScore: res.totalScore });
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : "Could not load results.");
       setPhase("error");
