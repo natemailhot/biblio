@@ -5,7 +5,7 @@ import { fetchJson } from "@/lib/fetchJson";
 import { TierBadge } from "./TierBadge";
 import type { AnswerTier, DailyQuestionSummary, DailySetSummary, SubmitQuestionAnswerResponse } from "@/lib/types";
 
-type Reveal = {
+type Feedback = {
   tone: "accepted" | "invalid";
   message: string;
   tier?: AnswerTier;
@@ -35,9 +35,11 @@ function QuestionRound({
   const [timeLeft, setTimeLeft] = useState(question.durationSeconds);
   const [input, setInput] = useState("");
   const [whatCountsOpen, setWhatCountsOpen] = useState(false);
-  const [reveal, setReveal] = useState<Reveal | null>(null);
+  const [feedback, setFeedback] = useState<Feedback | null>(null);
+  const [finalReveal, setFinalReveal] = useState<Feedback | null>(null);
+  const [triedGuesses, setTriedGuesses] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
-  const answeredRef = useRef(false);
+  const lockedRef = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -48,9 +50,8 @@ function QuestionRound({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const submit = async (rawInput: string) => {
-    if (answeredRef.current) return;
-    answeredRef.current = true;
+  const submit = async (rawInput: string, isTimeout: boolean) => {
+    if (lockedRef.current) return;
     setBusy(true);
     let scoreDelta = 0;
     try {
@@ -58,36 +59,50 @@ function QuestionRound({
         `/api/sessions/${sessionId}/questions/${question.id}/answer`,
         { method: "POST", body: JSON.stringify({ rawInput }) }
       );
-      if (res.result === "accepted") scoreDelta = res.score;
-      setReveal({
-        tone: res.result === "accepted" ? "accepted" : "invalid",
-        message:
-          res.result === "accepted" ? res.message : rawInput.trim() ? res.message : "Time's up — no guess.",
-        tier: res.tier,
-      });
+
+      if (res.result === "accepted") {
+        lockedRef.current = true;
+        scoreDelta = res.score;
+        setFinalReveal({ tone: "accepted", message: res.message, tier: res.tier });
+        setTimeout(() => onAdvance(scoreDelta), REVEAL_PAUSE_MS);
+      } else if (isTimeout) {
+        lockedRef.current = true;
+        setFinalReveal({ tone: "invalid", message: "Time's up — no correct guess." });
+        setTimeout(() => onAdvance(0), REVEAL_PAUSE_MS);
+      } else {
+        setTriedGuesses((g) => [...g, rawInput]);
+        setFeedback({ tone: "invalid", message: res.message });
+        setInput("");
+        inputRef.current?.focus();
+      }
     } catch {
-      setReveal({ tone: "invalid", message: "Something went wrong — try again." });
+      if (isTimeout) {
+        lockedRef.current = true;
+        setFinalReveal({ tone: "invalid", message: "Time's up — no correct guess." });
+        setTimeout(() => onAdvance(0), REVEAL_PAUSE_MS);
+      } else {
+        setFeedback({ tone: "invalid", message: "Something went wrong — try again." });
+      }
     } finally {
       setBusy(false);
-      setTimeout(() => onAdvance(scoreDelta), REVEAL_PAUSE_MS);
     }
   };
 
   useEffect(() => {
-    if (accessibilityMode || reveal) return;
+    if (accessibilityMode || finalReveal) return;
     if (timeLeft <= 0) {
-      const id = setTimeout(() => submit(""), 0);
+      const id = setTimeout(() => submit("", true), 0);
       return () => clearTimeout(id);
     }
     const id = setTimeout(() => setTimeLeft((t) => t - 1), 1000);
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timeLeft, accessibilityMode, reveal]);
+  }, [timeLeft, accessibilityMode, finalReveal]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || busy || reveal) return;
-    submit(input);
+    if (!input.trim() || busy || finalReveal) return;
+    submit(input, false);
   };
 
   const minutes = Math.floor(Math.max(timeLeft, 0) / 60);
@@ -126,42 +141,50 @@ function QuestionRound({
 
       <form onSubmit={handleSubmit} className="flex gap-2">
         <label htmlFor="answer-input" className="sr-only">
-          Your one guess
+          Guess
         </label>
         <input
           id="answer-input"
           ref={inputRef}
           type="text"
           autoFocus
-          disabled={busy || !!reveal}
+          disabled={busy || !!finalReveal}
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Your one guess…"
+          placeholder="Type a guess…"
           className="min-h-[3rem] flex-1 rounded-xl border border-stone/40 bg-white px-4 text-lg text-ink focus:border-indigo disabled:opacity-60"
         />
         <button
           type="submit"
-          disabled={busy || !!reveal || !input.trim()}
+          disabled={busy || !!finalReveal || !input.trim()}
           className="min-h-[3rem] rounded-xl bg-indigo px-5 font-medium text-parchment disabled:opacity-50"
         >
-          Lock In
+          Guess
         </button>
       </form>
 
       <div aria-live="polite" className="min-h-[4rem]">
-        {reveal && (
+        {finalReveal ? (
           <div
             className={`animate-rise-in flex items-center justify-between rounded-xl border px-4 py-3 ${
-              reveal.tone === "accepted" ? "border-olive bg-white/70" : "border-stone/30 bg-white/50"
+              finalReveal.tone === "accepted" ? "border-olive bg-white/70" : "border-stone/30 bg-white/50"
             }`}
           >
-            <span className={reveal.tone === "accepted" ? "font-medium text-olive" : "text-stone-dark"}>
-              {reveal.message}
+            <span className={finalReveal.tone === "accepted" ? "font-medium text-olive" : "text-stone-dark"}>
+              {finalReveal.message}
             </span>
-            {reveal.tier && <TierBadge tier={reveal.tier} />}
+            {finalReveal.tier && <TierBadge tier={finalReveal.tier} />}
           </div>
+        ) : (
+          feedback && (
+            <p className="animate-rise-in text-sm font-medium text-indigo-dim">{feedback.message}</p>
+          )
         )}
       </div>
+
+      {triedGuesses.length > 0 && !finalReveal && (
+        <p className="text-xs text-stone">Already tried: {triedGuesses.join(", ")}</p>
+      )}
 
       <div className="mt-auto flex items-center justify-between rounded-xl border border-gold-soft bg-white/60 px-4 py-3">
         <span className="text-sm text-stone-dark">Ascent score</span>

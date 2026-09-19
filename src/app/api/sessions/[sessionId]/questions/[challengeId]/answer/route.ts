@@ -5,10 +5,11 @@ import type { ChallengeAnswer, SubmitQuestionAnswerResponse } from "@/lib/types"
 
 const TIMED_MODE_GRACE_MS = 2000;
 
-// Records the player's single guess for one question. Exactly one guess is
-// allowed per (session, question) — enforced by a DB unique constraint, not
-// just client behavior — and an empty rawInput is treated as an explicit
-// skip (e.g. the client's timer ran out) rather than an error.
+// Records a guess for one question. Wrong guesses don't lock the question —
+// the player may keep guessing until they get it right or the per-question
+// timer runs out. Once a correct guess is recorded, further submissions are
+// rejected. An empty rawInput is treated as an explicit skip (e.g. the
+// client's timer ran out) rather than an error.
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ sessionId: string; challengeId: string }> }
@@ -42,15 +43,16 @@ export async function POST(
     return NextResponse.json({ error: "Question not found in this session" }, { status: 404 });
   }
 
-  const { data: alreadyAnswered } = await supabase
+  const { data: alreadyCorrect } = await supabase
     .from("submitted_answers")
     .select("id")
     .eq("session_id", sessionId)
     .eq("challenge_id", challengeId)
+    .eq("result", "accepted")
     .maybeSingle();
 
-  if (alreadyAnswered) {
-    return NextResponse.json({ error: "This question was already answered" }, { status: 409 });
+  if (alreadyCorrect) {
+    return NextResponse.json({ error: "This question was already answered correctly" }, { status: 409 });
   }
 
   const isSkip = !rawInput.trim();

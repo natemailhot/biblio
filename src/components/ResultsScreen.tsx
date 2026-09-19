@@ -7,35 +7,63 @@ import type { QuestionResult, SessionResults } from "@/lib/types";
 
 function QuestionCard({ q }: { q: QuestionResult }) {
   const hit = q.result === "accepted";
+  const [open, setOpen] = useState(false);
+
   return (
     <li className="rounded-lg border border-stone/30 bg-white/60 p-4">
-      <p className="text-xs uppercase tracking-wide text-stone">Question {q.slot}</p>
-      <p className="mt-1 font-medium text-ink">{q.prompt}</p>
-      <div className="mt-2 flex items-center justify-between gap-3">
-        <span className="text-sm text-stone-dark">
-          Your guess: <span className="text-ink">{q.guess.trim() || "—"}</span>
-        </span>
-        <span className="flex items-center gap-2">
-          {hit && q.tier && <TierBadge tier={q.tier} />}
-          <span className={`font-serif-heading ${hit ? "text-gold" : "text-stone"}`}>
-            {hit ? `+${q.score}` : "+0"}
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="w-full text-left"
+      >
+        <p className="text-xs uppercase tracking-wide text-stone">
+          Question {q.slot} {q.guessCount > 0 && `· ${q.guessCount} guess${q.guessCount === 1 ? "" : "es"}`}
+        </p>
+        <p className="mt-1 font-medium text-ink">{q.prompt}</p>
+        <div className="mt-2 flex items-center justify-between gap-3">
+          <span className="text-sm text-stone-dark">
+            {hit ? "Your answer: " : "Last guess: "}
+            <span className="text-ink">{q.guess.trim() || "—"}</span>
           </span>
-        </span>
-      </div>
-      {hit && q.explanation && (
-        <p className="mt-2 text-sm text-stone-dark">
-          {q.explanation}
-          {q.isDailyGem && " ✦ Third Heaven — today's rarest find."}
+          <span className="flex items-center gap-2">
+            {hit && q.tier && <TierBadge tier={q.tier} />}
+            <span className={`font-serif-heading ${hit ? "text-gold" : "text-stone"}`}>
+              {hit ? `+${q.score}` : "+0"}
+            </span>
+          </span>
+        </div>
+        {hit && q.explanation && (
+          <p className="mt-2 text-sm text-stone-dark">
+            {q.explanation}
+            {q.isDailyGem && " ✦ Third Heaven — today's rarest find."}
+          </p>
+        )}
+        {hit && q.references && q.references.length > 0 && (
+          <p className="mt-1 text-xs text-stone">{q.references.map((r) => r.display).join(" · ")}</p>
+        )}
+        <p className="mt-2 text-xs font-medium text-indigo underline decoration-gold-soft underline-offset-4">
+          {open ? "Hide all answers" : "Show all answers, highest to lowest"}
         </p>
-      )}
-      {!hit && q.bestMissedAnswer && (
-        <p className="mt-2 text-sm text-stone-dark">
-          A top answer was <span className="font-medium text-ink">{q.bestMissedAnswer.canonicalAnswer}</span>{" "}
-          ({q.bestMissedAnswer.explanation})
-        </p>
-      )}
-      {hit && q.references && q.references.length > 0 && (
-        <p className="mt-1 text-xs text-stone">{q.references.map((r) => r.display).join(" · ")}</p>
+      </button>
+
+      {open && (
+        <ul className="mt-3 flex flex-col gap-1.5 border-t border-stone/20 pt-3">
+          {q.allAnswers.map((a) => (
+            <li
+              key={a.canonicalAnswer}
+              className={`flex items-center justify-between gap-3 rounded-md px-2 py-1.5 text-sm ${
+                a.found ? "bg-olive/10" : ""
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <span className={a.found ? "font-medium text-olive" : "text-ink"}>{a.canonicalAnswer}</span>
+                <TierBadge tier={a.tier} />
+              </span>
+              <span className="font-serif-heading text-gold">{a.score}</span>
+            </li>
+          ))}
+        </ul>
       )}
     </li>
   );

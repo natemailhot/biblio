@@ -511,7 +511,7 @@ async function seed() {
         prompt: question.prompt,
         instructions: question.instructions,
         what_counts: question.whatCounts,
-        duration_seconds: 15,
+        duration_seconds: 25,
         canon_scope: "protestant-66",
         answer_set_version: "v1",
       })

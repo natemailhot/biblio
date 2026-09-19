@@ -97,8 +97,19 @@ export type SubmitBonusResponse = {
   contextNote: string;
 };
 
-// One question's outcome for the results screen: the player's single guess,
-// whether it matched, and (for teaching value) the best answer they missed.
+export type RankedAnswer = {
+  canonicalAnswer: string;
+  score: number;
+  tier: AnswerTier;
+  explanation: string;
+  references: BibleReference[];
+  found: boolean;
+};
+
+// One question's outcome for the results screen: the player's final guess
+// (their correct one, or their last attempt if they never got it), how many
+// guesses it took, and the full answer set ranked highest score first for
+// on-demand review.
 export type QuestionResult = {
   slot: number;
   prompt: string;
@@ -110,13 +121,8 @@ export type QuestionResult = {
   explanation?: string;
   references?: BibleReference[];
   isDailyGem: boolean;
-  bestMissedAnswer: {
-    canonicalAnswer: string;
-    score: number;
-    tier: AnswerTier;
-    explanation: string;
-    references: BibleReference[];
-  } | null;
+  guessCount: number;
+  allAnswers: RankedAnswer[];
 };
 
 export type SessionResults = {

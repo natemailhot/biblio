@@ -43,8 +43,9 @@ export async function GET(
       .order("slot", { ascending: true }),
     supabase
       .from("submitted_answers")
-      .select("challenge_id, raw_input, result, matched_answer_id")
-      .eq("session_id", sessionId),
+      .select("challenge_id, raw_input, result, matched_answer_id, submitted_at_ms")
+      .eq("session_id", sessionId)
+      .order("submitted_at_ms", { ascending: true }),
     supabase
       .from("scripture_bonus")
       .select("display_text, book, reference_display, translation, context_note, bonus_points")
@@ -59,48 +60,56 @@ export async function GET(
     return NextResponse.json({ error: "Scripture Bonus not found" }, { status: 404 });
   }
 
-  const submittedByChallenge = new Map((submitted ?? []).map((s) => [s.challenge_id, s]));
+  // Group submissions per question: prefer the accepted one; otherwise show
+  // the player's last attempt (and how many guesses they took).
+  const submissionsByChallenge = new Map<string, NonNullable<typeof submitted>>();
+  for (const s of submitted ?? []) {
+    const list = submissionsByChallenge.get(s.challenge_id) ?? [];
+    list.push(s);
+    submissionsByChallenge.set(s.challenge_id, list);
+  }
 
   const questionResults: QuestionResult[] = [];
 
   for (const question of questions) {
-    const submission = submittedByChallenge.get(question.id);
+    const attempts = submissionsByChallenge.get(question.id) ?? [];
+    const accepted = attempts.find((a) => a.result === "accepted");
+    const lastAttempt = attempts[attempts.length - 1];
+    const relevant = accepted ?? lastAttempt;
+    const guessCount = attempts.filter((a) => a.raw_input.trim()).length;
 
     const { data: answerRows } = await supabase
       .from("challenge_answers")
       .select("id, canonical_answer, score, tier, references, explanation")
       .eq("challenge_id", question.id)
       .eq("answer_set_version", question.answer_set_version)
-      .eq("active", true);
+      .eq("active", true)
+      .order("score", { ascending: false });
 
-    const matched = submission?.matched_answer_id
-      ? (answerRows ?? []).find((a) => a.id === submission.matched_answer_id)
+    const matched = relevant?.matched_answer_id
+      ? (answerRows ?? []).find((a) => a.id === relevant.matched_answer_id)
       : undefined;
-
-    const dailyGemRow = (answerRows ?? []).find((a) => a.id === question.daily_gem_answer_id);
-    const bestMissedAnswer =
-      !matched && dailyGemRow
-        ? {
-            canonicalAnswer: dailyGemRow.canonical_answer,
-            score: dailyGemRow.score,
-            tier: dailyGemRow.tier,
-            explanation: dailyGemRow.explanation,
-            references: dailyGemRow.references ?? [],
-          }
-        : null;
 
     questionResults.push({
       slot: question.slot,
       prompt: question.prompt,
-      guess: submission?.raw_input ?? "",
-      result: submission?.result ?? "invalid",
+      guess: relevant?.raw_input ?? "",
+      result: relevant?.result ?? "invalid",
       score: matched?.score ?? 0,
       canonicalAnswer: matched?.canonical_answer,
       tier: matched?.tier,
       explanation: matched?.explanation,
       references: matched?.references ?? [],
       isDailyGem: matched ? matched.id === question.daily_gem_answer_id : false,
-      bestMissedAnswer,
+      guessCount,
+      allAnswers: (answerRows ?? []).map((a) => ({
+        canonicalAnswer: a.canonical_answer,
+        score: a.score,
+        tier: a.tier,
+        explanation: a.explanation,
+        references: a.references ?? [],
+        found: a.id === relevant?.matched_answer_id,
+      })),
     });
   }
 
