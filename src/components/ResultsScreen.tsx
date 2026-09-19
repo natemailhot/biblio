@@ -69,7 +69,13 @@ function QuestionCard({ q }: { q: QuestionResult }) {
   );
 }
 
-export function ResultsScreen({ results }: { results: SessionResults }) {
+export function ResultsScreen({
+  results,
+  returning = false,
+}: {
+  results: SessionResults;
+  returning?: boolean;
+}) {
   const [copied, setCopied] = useState(false);
 
   const grid = results.questionResults
@@ -97,6 +103,11 @@ export function ResultsScreen({ results }: { results: SessionResults }) {
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-8 px-6 py-12">
+      {returning && (
+        <p className="animate-rise-in rounded-full border border-gold-soft bg-white/60 px-4 py-2 text-center text-sm text-stone-dark">
+          Welcome back — you&apos;ve already completed today&apos;s Ascend. Here&apos;s how you did.
+        </p>
+      )}
       <div className="text-center">
         <p className="font-serif-heading text-sm uppercase tracking-[0.2em] text-gold">
           Ascend {BRAND_EMOJI} · Day {results.dayNumber}

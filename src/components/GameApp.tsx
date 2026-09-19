@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { fetchJson } from "@/lib/fetchJson";
+import { getCompletedSessionId, markSessionCompleted, clearCompletedSession } from "@/lib/completedSessions";
 import { IntroScreen } from "./IntroScreen";
 import { AscentScreen } from "./AscentScreen";
 import { BonusScreen } from "./BonusScreen";
@@ -15,12 +16,30 @@ export function GameApp() {
   const [dailySet, setDailySet] = useState<DailySetSummary | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [results, setResults] = useState<SessionResults | null>(null);
+  const [returning, setReturning] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     fetchJson<DailySetSummary>("/api/daily-set")
-      .then((d) => {
+      .then(async (d) => {
         setDailySet(d);
+
+        const completedSessionId = getCompletedSessionId(d.id);
+        if (completedSessionId) {
+          try {
+            const res = await fetchJson<SessionResults>(`/api/sessions/${completedSessionId}/results`);
+            setSessionId(completedSessionId);
+            setResults(res);
+            setReturning(true);
+            setPhase("results");
+            return;
+          } catch {
+            // Stale/invalid local record (e.g. content was reseeded) — fall
+            // through to a normal fresh play-through.
+            clearCompletedSession(d.id);
+          }
+        }
+
         setPhase("intro");
       })
       .catch((err) => {
@@ -47,10 +66,11 @@ export function GameApp() {
   const handleAllAnswered = () => setPhase("bonus");
 
   const handleBonusDone = async () => {
-    if (!sessionId) return;
+    if (!sessionId || !dailySet) return;
     try {
       const res = await fetchJson<SessionResults>(`/api/sessions/${sessionId}/results`);
       setResults(res);
+      markSessionCompleted(dailySet.id, sessionId);
       setPhase("results");
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : "Could not load results.");
@@ -89,7 +109,7 @@ export function GameApp() {
   }
 
   if (phase === "results" && results) {
-    return <ResultsScreen results={results} />;
+    return <ResultsScreen results={results} returning={returning} />;
   }
 
   return null;
