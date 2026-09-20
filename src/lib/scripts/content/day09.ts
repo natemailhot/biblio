@@ -18,10 +18,10 @@ export const DAY_09: SeedDay = {
   questions: [
     {
       slot: 1,
-      prompt: "Name a person whose name was changed by God.",
+      prompt: "Name a person given a new name by God or Jesus.",
       instructions: "You get one guess.",
       whatCounts:
-        "Any person the biblical text explicitly describes God (or a prophet speaking for God) giving a new name.",
+        "Any person the biblical text explicitly describes being given a new name by God (or a prophet speaking for God) or by Jesus.",
       answers: [
         {
           canonical: "Abraham",
