@@ -603,6 +603,15 @@ export const DAY_02: SeedDay = {
           explanation: "A lamb without blemish is prescribed for the first Passover, and lambs recur throughout the sacrificial law.",
         },
         {
+          canonical: "Hyrax",
+          aliases: ["coney", "rock hyrax", "rock badger"],
+          score: 85,
+          tier: "holy-of-holies",
+          references: [{ book: "Leviticus", chapterStart: 11, verseStart: 5, display: "Leviticus 11:5" }],
+          explanation:
+            "The hyrax (rendered \"coney\" in older translations) is listed among the animals Israel may not eat because it chews the cud but does not have a split hoof.",
+        },
+        {
           canonical: "Lion",
           aliases: [],
           score: 20,
