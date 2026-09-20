@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { bucketScores } from "@/lib/content/scoreBuckets";
+import { computeDayStreak } from "@/lib/content/streak";
 
 const LIMIT = 50;
 
@@ -8,8 +9,8 @@ const LIMIT = 50;
 // only exists here if the session that earned it had a signed-in user_id).
 export async function GET(req: NextRequest) {
   const range = req.nextUrl.searchParams.get("range") ?? "today";
-  if (!["today", "week", "all"].includes(range)) {
-    return NextResponse.json({ error: "range must be today, week, or all" }, { status: 400 });
+  if (!["today", "week", "all", "streaks"].includes(range)) {
+    return NextResponse.json({ error: "range must be today, week, all, or streaks" }, { status: 400 });
   }
 
   const supabase = createServiceRoleClient();
@@ -19,6 +20,44 @@ export async function GET(req: NextRequest) {
     .select("day_number")
     .eq("date", new Date().toLocaleDateString("en-CA"))
     .maybeSingle();
+
+  if (range === "streaks") {
+    const { data: rows, error } = await supabase
+      .from("game_sessions")
+      .select("user_id, daily_sets!inner(day_number)")
+      .not("completed_at", "is", null)
+      .not("user_id", "is", null);
+    if (error) {
+      return NextResponse.json({ error: "Could not load leaderboard" }, { status: 500 });
+    }
+
+    const dayNumbersByUser = new Map<string, Set<number>>();
+    for (const r of rows ?? []) {
+      if (!r.user_id) continue;
+      const dailySet = r.daily_sets as unknown as { day_number: number } | null;
+      if (!dailySet) continue;
+      if (!dayNumbersByUser.has(r.user_id)) dayNumbersByUser.set(r.user_id, new Set());
+      dayNumbersByUser.get(r.user_id)!.add(dailySet.day_number);
+    }
+
+    const userIds = [...dayNumbersByUser.keys()];
+    const { data: profiles } = await supabase.from("profiles").select("id, username").in("id", userIds);
+    const usernameById = new Map((profiles ?? []).map((p) => [p.id, p.username]));
+
+    const entries = userIds
+      .map((userId) => {
+        const sortedDesc = [...dayNumbersByUser.get(userId)!].sort((a, b) => b - a);
+        return {
+          username: usernameById.get(userId) ?? null,
+          streak: computeDayStreak(sortedDesc, today?.day_number ?? null),
+        };
+      })
+      .filter((e): e is { username: string; streak: number } => e.username !== null && e.streak > 0)
+      .sort((a, b) => b.streak - a.streak)
+      .slice(0, LIMIT);
+
+    return NextResponse.json({ range: "streaks", entries });
+  }
 
   let query = supabase
     .from("game_sessions")
@@ -68,5 +107,5 @@ export async function GET(req: NextRequest) {
     .sort((a, b) => b.score - a.score)
     .slice(0, LIMIT);
 
-  return NextResponse.json({ range, entries, histogram });
+  return NextResponse.json({ range: range as "today" | "week" | "all", entries, histogram });
 }

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BRAND_EMOJI } from "@/lib/content/tiers";
 import { STAT_ROWS } from "@/lib/content/statRows";
+import { BADGES } from "@/lib/content/badges";
 import { fetchJson } from "@/lib/fetchJson";
 import type { AccountMeResponse, PlayerStats } from "@/lib/types";
 
@@ -11,6 +12,7 @@ export default function StatsPage() {
   const [me, setMe] = useState<AccountMeResponse | null>(null);
   const [stats, setStats] = useState<PlayerStats | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     fetchJson<AccountMeResponse>("/api/account/me")
@@ -23,6 +25,23 @@ export default function StatsPage() {
       .catch(() => setError("Could not load stats."));
   }, []);
 
+  const handleCopy = async () => {
+    if (!stats) return;
+    const text = [
+      `Ascend ${BRAND_EMOJI} stats`,
+      ...STAT_ROWS.map((row) => `${row.label}: ${row.format(stats[row.key])}`),
+      "",
+      "dailyascend.io",
+    ].join("\n");
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      // clipboard may be unavailable
+    }
+  };
+
   return (
     <div className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 px-6 py-12">
       <p className="font-serif-heading text-sm uppercase tracking-[0.2em] text-gold">
@@ -32,7 +51,7 @@ export default function StatsPage() {
 
       {me && !me.signedIn && (
         <div className="rounded-2xl border border-gold-soft bg-white/60 p-6">
-          <p className="text-ink">Sign in from the account button to track your stats across every day you play.</p>
+          <p className="text-ink">You&apos;re playing signed out. Sign in from the account button to track your stats across every day you play.</p>
           <Link href="/" className="mt-3 inline-block text-sm font-medium text-indigo underline decoration-gold-soft underline-offset-4">
             ← Back to today&apos;s Ascend
           </Link>
@@ -52,6 +71,14 @@ export default function StatsPage() {
 
       {stats && (
         <>
+          <button
+            type="button"
+            onClick={handleCopy}
+            className="w-full rounded-full bg-indigo px-6 py-3 font-medium text-parchment transition-colors hover:bg-indigo-dim"
+          >
+            {copied ? "Copied to clipboard" : "Copy Text"}
+          </button>
+
           <ul className="flex flex-col gap-3">
             {STAT_ROWS.map((row) => (
               <li
@@ -63,6 +90,31 @@ export default function StatsPage() {
               </li>
             ))}
           </ul>
+
+          <div>
+            <h2 className="font-serif-heading text-lg font-semibold text-ink">Badges</h2>
+            <ul className="mt-3 grid grid-cols-2 gap-2">
+              {BADGES.map((b) => {
+                const earned = b.earned(stats);
+                return (
+                  <li
+                    key={b.key}
+                    className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 ${
+                      earned ? "border-gold-soft bg-white/60" : "border-stone/20 bg-white/20 opacity-50"
+                    }`}
+                  >
+                    <span className="text-xl" aria-hidden="true">
+                      {b.icon}
+                    </span>
+                    <span>
+                      <span className="block text-sm font-medium text-ink">{b.label}</span>
+                      <span className="block text-xs text-stone-dark">{b.description}</span>
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
 
           <div>
             <h2 className="font-serif-heading text-lg font-semibold text-ink">Score history</h2>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { getAuthenticatedUserId } from "@/lib/supabase/serverAuth";
+import { computeDayStreak } from "@/lib/content/streak";
 
 export async function GET() {
   const userId = await getAuthenticatedUserId();
@@ -61,21 +62,10 @@ export async function GET() {
   const bestScore = Math.max(...history.map((r) => r.score));
   const averageMultiplier = Math.round((history.reduce((s, r) => s + r.multiplier, 0) / played) * 100) / 100;
 
-  // Day streak: consecutive day_numbers played, walking backward from the
-  // most recent one — only "live" if the most recent play was today or
-  // yesterday (relative to the player's local date, same day-rollover
-  // convention the rest of the app uses).
-  let dayStreak = 0;
-  if (today?.day_number != null) {
-    const mostRecent = history[0].dayNumber;
-    if (mostRecent === today.day_number || mostRecent === today.day_number - 1) {
-      dayStreak = 1;
-      for (let i = 1; i < history.length; i++) {
-        if (history[i].dayNumber === history[i - 1].dayNumber - 1) dayStreak++;
-        else break;
-      }
-    }
-  }
+  const dayStreak = computeDayStreak(
+    history.map((h) => h.dayNumber),
+    today?.day_number ?? null
+  );
 
   return NextResponse.json({ played, dayStreak, averageScore, bestScore, averageMultiplier, history });
 }

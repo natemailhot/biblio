@@ -190,7 +190,7 @@ export type PlayerStats = {
   history: PlayerStatsHistoryEntry[];
 };
 
-export type LeaderboardRange = "today" | "week" | "all";
+export type LeaderboardRange = "today" | "week" | "all" | "streaks";
 
 export type LeaderboardEntry = {
   username: string;
@@ -198,13 +198,16 @@ export type LeaderboardEntry = {
   multiplier: number;
 };
 
+export type StreakLeaderboardEntry = {
+  username: string;
+  streak: number;
+};
+
 export type ScoreHistogramBucket = {
   label: string;
   count: number;
 };
 
-export type LeaderboardResponse = {
-  range: LeaderboardRange;
-  entries: LeaderboardEntry[];
-  histogram: ScoreHistogramBucket[];
-};
+export type LeaderboardResponse =
+  | { range: "today" | "week" | "all"; entries: LeaderboardEntry[]; histogram: ScoreHistogramBucket[] }
+  | { range: "streaks"; entries: StreakLeaderboardEntry[] };
