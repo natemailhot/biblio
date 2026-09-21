@@ -209,18 +209,25 @@ export type LeaderboardResponse = {
   histogram: ScoreHistogramBucket[];
 };
 
-// One of the 5 questions as seen inside the optional bonus round: whether
-// it was already answered correctly in the main round (locked, contributes
-// to the starting baseline) or is still open to attempt. Prompt/whatCounts
+// A single answer credited toward a question during the bonus round — either
+// carried over from the main round (one, at most) or found during the bonus
+// round itself (any number: the round accepts unlimited distinct correct
+// answers per question, the goal being the highest cumulative sum).
+export type BonusRoundFoundAnswer = {
+  answerId: string;
+  canonicalAnswer: string;
+  score: number;
+  tier: AnswerTier;
+  source: "main" | "bonus";
+};
+
+// One of the 5 questions as seen inside the bonus round. Prompt/whatCounts
 // aren't repeated here — the client already has them from DailySetSummary
 // and merges by challengeId.
 export type BonusRoundQuestionState = {
   challengeId: string;
   slot: number;
-  locked: boolean;
-  score: number | null;
-  canonicalAnswer: string | null;
-  tier: AnswerTier | null;
+  found: BonusRoundFoundAnswer[];
 };
 
 export type BonusRoundStatus = {
@@ -233,8 +240,10 @@ export type BonusRoundStatus = {
   questions: BonusRoundQuestionState[];
 };
 
+export type BonusRoundAnswerResult = "accepted" | "duplicate" | "invalid";
+
 export type SubmitBonusRoundAnswerResponse = {
-  result: SubmittedAnswerResult;
+  result: BonusRoundAnswerResult;
   score: number;
   canonicalAnswer?: string;
   tier?: AnswerTier;

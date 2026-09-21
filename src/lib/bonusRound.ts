@@ -3,9 +3,11 @@ import type { AnswerTier, BonusRoundQuestionState, BonusRoundStatus } from "@/li
 
 export const BONUS_ROUND_DURATION_MS = 5 * 60 * 1000;
 
-// Shared by the start/status/answer/finish routes so they all agree on
-// what "current state" means: the baseline from the main round plus
-// whatever's been earned in the bonus round so far, per question.
+// Shared by the start/status/answer/finish routes so they all agree on what
+// "current state" means: the baseline from the main round (at most one
+// credited answer per question) plus every distinct answer found during the
+// bonus round itself — the round accepts unlimited distinct correct answers
+// per question, so a question can rack up many.
 export async function buildBonusRoundStatus(
   supabase: ReturnType<typeof createServiceRoleClient>,
   gameSessionId: string,
@@ -33,30 +35,42 @@ export async function buildBonusRoundStatus(
     supabase.from("daily_challenges").select("id, slot").eq("daily_set_id", dailySetId).order("slot", { ascending: true }),
     supabase
       .from("submitted_answers")
-      .select("challenge_id, score, tier, canonical_answer")
+      .select("challenge_id, matched_answer_id, score, tier, canonical_answer")
       .eq("session_id", gameSessionId)
       .eq("result", "accepted"),
     supabase
       .from("bonus_round_answers")
-      .select("challenge_id, score, tier, canonical_answer")
+      .select("challenge_id, matched_answer_id, score, tier, canonical_answer")
       .eq("bonus_round_session_id", bonusSession.id)
       .eq("result", "accepted"),
   ]);
 
-  const mainByChallenge = new Map((mainAnswers ?? []).map((a) => [a.challenge_id, a]));
-  const bonusByChallenge = new Map((bonusAnswers ?? []).map((a) => [a.challenge_id, a]));
+  const foundByChallenge = new Map<string, BonusRoundQuestionState["found"]>();
+  const push = (
+    challengeId: string,
+    answerId: string | null,
+    canonicalAnswer: string | null,
+    score: number | null,
+    tier: string | null,
+    source: "main" | "bonus"
+  ) => {
+    if (!answerId || !canonicalAnswer || score == null || !tier) return;
+    const list = foundByChallenge.get(challengeId) ?? [];
+    list.push({ answerId, canonicalAnswer, score, tier: tier as AnswerTier, source });
+    foundByChallenge.set(challengeId, list);
+  };
+  for (const a of mainAnswers ?? []) {
+    push(a.challenge_id, a.matched_answer_id, a.canonical_answer, a.score, a.tier, "main");
+  }
+  for (const a of bonusAnswers ?? []) {
+    push(a.challenge_id, a.matched_answer_id, a.canonical_answer, a.score, a.tier, "bonus");
+  }
 
-  const questions: BonusRoundQuestionState[] = (challenges ?? []).map((c) => {
-    const source = mainByChallenge.get(c.id) ?? bonusByChallenge.get(c.id);
-    return {
-      challengeId: c.id,
-      slot: c.slot,
-      locked: !!source,
-      score: source?.score ?? null,
-      canonicalAnswer: source?.canonical_answer ?? null,
-      tier: (source?.tier as AnswerTier | null) ?? null,
-    };
-  });
+  const questions: BonusRoundQuestionState[] = (challenges ?? []).map((c) => ({
+    challengeId: c.id,
+    slot: c.slot,
+    found: foundByChallenge.get(c.id) ?? [],
+  }));
 
   const bonusEarned = (bonusAnswers ?? []).reduce((sum, a) => sum + (a.score ?? 0), 0);
 

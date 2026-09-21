@@ -156,7 +156,7 @@ export function MenuButton() {
                       <span className="text-ink">
                         {i + 1}. {e.username}
                       </span>
-                      <span className="text-xs text-stone">×{e.multiplier.toFixed(2)}</span>
+                      <span className="font-serif-heading font-semibold text-gold">{e.score}</span>
                     </li>
                   ))}
                 </ol>

@@ -5,12 +5,13 @@ import { fetchJson } from "@/lib/fetchJson";
 import { TierBadge } from "./TierBadge";
 import type {
   AnswerTier,
+  BonusRoundAnswerResult,
   BonusRoundStatus,
   DailySetSummary,
   SubmitBonusRoundAnswerResponse,
 } from "@/lib/types";
 
-type Feedback = { tone: "accepted" | "invalid"; message: string; tier?: AnswerTier; suggestion?: string };
+type Feedback = { tone: BonusRoundAnswerResult; message: string; tier?: AnswerTier; suggestion?: string };
 type Stage = "offer" | "starting" | "playing" | "finishing";
 
 function formatClock(ms: number): string {
@@ -22,9 +23,11 @@ function formatClock(ms: number): string {
 
 // Optional second chance after the Scripture Bonus, before results are
 // revealed: 5 minutes to go back over the same 5 questions, freely
-// switching between whichever are still open, starting from whatever score
-// the player already locked in during the main round. Its score is purely
-// separate — it never touches ascent_score/total_score.
+// switching between them, trying to rack up as many distinct correct
+// answers as possible — every question accepts unlimited answers, the goal
+// being the highest cumulative sum, starting from whatever the player
+// already got right in the main round. Its score is purely separate — it
+// never touches ascent_score/total_score.
 export function BonusRoundScreen({
   dailySet,
   sessionId,
@@ -46,19 +49,15 @@ export function BonusRoundScreen({
   const [nowMs, setNowMs] = useState(() => Date.now());
   const finishedRef = useRef(false);
 
-  const lockedByChallenge = useMemo(
+  const questionByChallenge = useMemo(
     () => new Map((status?.questions ?? []).map((q) => [q.challengeId, q])),
     [status]
   );
-  const openQuestions = useMemo(
-    () => dailySet.questions.filter((q) => !lockedByChallenge.get(q.id)?.locked),
-    [dailySet.questions, lockedByChallenge]
-  );
-  // Falls back to the first still-open question whenever the explicitly
-  // chosen one becomes locked (just answered correctly) or was never set —
-  // derived directly from render state instead of synced via an effect.
-  const activeQuestionId =
-    activeId && !lockedByChallenge.get(activeId)?.locked ? activeId : (openQuestions[0]?.id ?? null);
+  const activeQuestionId = activeId ?? dailySet.questions[0]?.id ?? null;
+  const activeQuestion = dailySet.questions.find((q) => q.id === activeQuestionId) ?? null;
+  const activeFound = questionByChallenge.get(activeQuestionId ?? "")?.found ?? [];
+
+  const totalFound = (status?.questions ?? []).reduce((sum, q) => sum + q.found.length, 0);
 
   useEffect(() => {
     if (stage !== "playing") return;
@@ -112,31 +111,37 @@ export function BonusRoundScreen({
         { method: "POST", body: JSON.stringify({ rawInput }) }
       );
       const answeredId = activeQuestionId;
-      setStatus((s) =>
-        s
-          ? {
-              ...s,
-              currentScore: res.currentScore,
-              questions: s.questions.map((q) =>
-                q.challengeId === answeredId && res.result === "accepted"
-                  ? {
-                      ...q,
-                      locked: true,
-                      score: res.score,
-                      canonicalAnswer: res.canonicalAnswer ?? null,
-                      tier: res.tier ?? null,
-                    }
-                  : q
-              ),
-            }
-          : s
-      );
 
       if (res.result === "accepted") {
+        setStatus((s) =>
+          s
+            ? {
+                ...s,
+                currentScore: res.currentScore,
+                questions: s.questions.map((q) =>
+                  q.challengeId === answeredId
+                    ? {
+                        ...q,
+                        found: [
+                          ...q.found,
+                          {
+                            answerId: `pending-${Date.now()}`,
+                            canonicalAnswer: res.canonicalAnswer ?? "",
+                            score: res.score,
+                            tier: res.tier ?? "outer-court",
+                            source: "bonus" as const,
+                          },
+                        ],
+                      }
+                    : q
+                ),
+              }
+            : s
+        );
         setFeedback({ tone: "accepted", message: res.message, tier: res.tier });
         setInput("");
       } else {
-        setFeedback({ tone: "invalid", message: res.message, suggestion: res.suggestion });
+        setFeedback({ tone: res.result, message: res.message, suggestion: res.suggestion });
       }
     } catch {
       setFeedback({ tone: "invalid", message: "Something went wrong — try again." });
@@ -151,7 +156,6 @@ export function BonusRoundScreen({
   };
 
   const switchTo = (challengeId: string) => {
-    if (lockedByChallenge.get(challengeId)?.locked) return;
     setActiveId(challengeId);
     setInput("");
     setFeedback(null);
@@ -165,9 +169,10 @@ export function BonusRoundScreen({
         <div className="rounded-2xl border border-gold-soft bg-white/70 p-6">
           <p className="font-serif-heading text-2xl font-semibold text-ink">Want 5 more minutes?</p>
           <p className="mt-2 text-ink">
-            Go back over today&apos;s questions and try to pick up any you missed — toggle between them
-            freely and answer in any order. This score is separate from your Ascend score: it&apos;s its
-            own shareable number with its own leaderboard, and starts from what you already got right.
+            Go back over today&apos;s questions and rack up as many correct answers as you can — each
+            question takes unlimited guesses, so the goal is the highest total, not just one right answer
+            per question. Toggle between them freely. This score is separate from your Ascend score: it&apos;s
+            its own shareable number with its own leaderboard, and starts from what you already got right.
           </p>
           <p className="mt-2 text-sm text-stone-dark">
             You can only play this before seeing your results — once you skip or the 5 minutes run out,
@@ -200,9 +205,6 @@ export function BonusRoundScreen({
     );
   }
 
-  const activeQuestion = dailySet.questions.find((q) => q.id === activeQuestionId) ?? null;
-  const allDone = openQuestions.length === 0;
-
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-6 py-10">
       <div className="flex items-center justify-between">
@@ -217,109 +219,133 @@ export function BonusRoundScreen({
       </div>
 
       <div className="flex items-center justify-between rounded-xl border border-gold-soft bg-white/60 px-4 py-3">
-        <span className="text-sm text-stone-dark">Bonus score</span>
+        <span className="text-sm text-stone-dark">Bonus score · {totalFound} found</span>
         <span className="font-serif-heading text-2xl font-semibold text-ink">{status.currentScore}</span>
       </div>
 
       <div className="grid grid-cols-5 gap-1.5">
         {dailySet.questions.map((q) => {
-          const s = lockedByChallenge.get(q.id);
+          const s = questionByChallenge.get(q.id);
           const active = q.id === activeQuestionId;
           return (
             <button
               key={q.id}
               type="button"
               onClick={() => switchTo(q.id)}
-              disabled={s?.locked}
               aria-pressed={active}
               className={`flex flex-col items-center gap-0.5 rounded-xl border px-2 py-2 text-xs font-medium transition-colors ${
-                s?.locked
-                  ? "border-olive/40 bg-olive/10 text-olive"
-                  : active
-                    ? "border-indigo bg-indigo text-parchment"
+                active
+                  ? "border-indigo bg-indigo text-parchment"
+                  : (s?.found.length ?? 0) > 0
+                    ? "border-olive/40 bg-olive/10 text-olive"
                     : "border-stone/40 bg-white/60 text-ink hover:border-indigo"
               }`}
             >
               <span>Q{q.slot}</span>
-              <span>{s?.locked ? "✓" : "—"}</span>
+              <span>{s?.found.length ?? 0}</span>
             </button>
           );
         })}
       </div>
 
-      {allDone ? (
-        <div className="rounded-2xl border border-olive/40 bg-white/70 p-6 text-center">
-          <p className="font-serif-heading text-xl font-semibold text-olive">You got them all!</p>
-          <p className="mt-2 text-stone-dark">Nothing left to try — lock in your bonus score whenever you&apos;re ready.</p>
-        </div>
-      ) : (
-        activeQuestion && (
-          <>
-            <h2 className="font-serif-heading text-2xl font-semibold text-ink">{activeQuestion.prompt}</h2>
+      {activeQuestion && (
+        <>
+          <h2 className="font-serif-heading text-2xl font-semibold text-ink">{activeQuestion.prompt}</h2>
 
+          <button
+            type="button"
+            onClick={() => setWhatCountsOpen((o) => !o)}
+            aria-expanded={whatCountsOpen}
+            className="w-fit text-sm font-medium text-indigo underline decoration-gold-soft underline-offset-4"
+          >
+            {whatCountsOpen ? "Hide" : "What counts?"}
+          </button>
+          {whatCountsOpen && (
+            <p className="rounded-xl border border-stone/30 bg-white/50 p-4 text-sm text-stone-dark">
+              {activeQuestion.whatCounts}
+            </p>
+          )}
+
+          <form onSubmit={handleSubmit} className="flex gap-2">
+            <label htmlFor="bonus-round-input" className="sr-only">
+              Guess
+            </label>
+            <input
+              id="bonus-round-input"
+              type="text"
+              autoFocus
+              disabled={busy}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Type another guess…"
+              className="min-h-[3rem] flex-1 rounded-xl border border-stone/40 bg-white px-4 text-lg text-ink focus:border-indigo disabled:opacity-60"
+            />
             <button
-              type="button"
-              onClick={() => setWhatCountsOpen((o) => !o)}
-              aria-expanded={whatCountsOpen}
-              className="w-fit text-sm font-medium text-indigo underline decoration-gold-soft underline-offset-4"
+              type="submit"
+              disabled={busy || !input.trim()}
+              className="min-h-[3rem] rounded-xl bg-indigo px-5 font-medium text-parchment disabled:opacity-50"
             >
-              {whatCountsOpen ? "Hide" : "What counts?"}
+              Guess
             </button>
-            {whatCountsOpen && (
-              <p className="rounded-xl border border-stone/30 bg-white/50 p-4 text-sm text-stone-dark">
-                {activeQuestion.whatCounts}
-              </p>
-            )}
+          </form>
 
-            <form onSubmit={handleSubmit} className="flex gap-2">
-              <label htmlFor="bonus-round-input" className="sr-only">
-                Guess
-              </label>
-              <input
-                id="bonus-round-input"
-                type="text"
-                autoFocus
-                disabled={busy}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Type a guess…"
-                className="min-h-[3rem] flex-1 rounded-xl border border-stone/40 bg-white px-4 text-lg text-ink focus:border-indigo disabled:opacity-60"
-              />
-              <button
-                type="submit"
-                disabled={busy || !input.trim()}
-                className="min-h-[3rem] rounded-xl bg-indigo px-5 font-medium text-parchment disabled:opacity-50"
+          <div aria-live="polite" className="min-h-[3.5rem]">
+            {feedback && (
+              <div
+                className={`animate-rise-in flex flex-wrap items-center justify-between gap-2 rounded-xl border px-4 py-3 ${
+                  feedback.tone === "accepted"
+                    ? "border-olive bg-white/70"
+                    : feedback.tone === "duplicate"
+                      ? "border-gold-soft bg-white/70"
+                      : "border-stone/30 bg-white/50"
+                }`}
               >
-                Guess
-              </button>
-            </form>
-
-            <div aria-live="polite" className="min-h-[3.5rem]">
-              {feedback && (
-                <div
-                  className={`animate-rise-in flex flex-wrap items-center justify-between gap-2 rounded-xl border px-4 py-3 ${
-                    feedback.tone === "accepted" ? "border-olive bg-white/70" : "border-stone/30 bg-white/50"
-                  }`}
+                <span
+                  className={
+                    feedback.tone === "accepted"
+                      ? "font-medium text-olive"
+                      : feedback.tone === "duplicate"
+                        ? "font-medium text-gold"
+                        : "text-stone-dark"
+                  }
                 >
-                  <span className={feedback.tone === "accepted" ? "font-medium text-olive" : "text-stone-dark"}>
-                    {feedback.message}
-                  </span>
-                  {feedback.tone === "accepted" && feedback.tier && <TierBadge tier={feedback.tier} />}
-                  {feedback.tone === "invalid" && feedback.suggestion && (
-                    <button
-                      type="button"
-                      onClick={() => submit(feedback.suggestion!)}
-                      disabled={busy}
-                      className="rounded-full border border-indigo px-3 py-1 text-xs font-medium text-indigo hover:bg-indigo hover:text-parchment disabled:opacity-50"
-                    >
-                      Yes, that&apos;s what I meant
-                    </button>
-                  )}
-                </div>
-              )}
+                  {feedback.message}
+                </span>
+                {feedback.tone === "accepted" && feedback.tier && <TierBadge tier={feedback.tier} />}
+                {feedback.tone === "invalid" && feedback.suggestion && (
+                  <button
+                    type="button"
+                    onClick={() => submit(feedback.suggestion!)}
+                    disabled={busy}
+                    className="rounded-full border border-indigo px-3 py-1 text-xs font-medium text-indigo hover:bg-indigo hover:text-parchment disabled:opacity-50"
+                  >
+                    Yes, that&apos;s what I meant
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
+          {activeFound.length > 0 && (
+            <div>
+              <p className="text-xs uppercase tracking-wide text-stone">Found so far</p>
+              <ul className="mt-1.5 flex flex-col gap-1">
+                {activeFound.map((a, i) => (
+                  <li
+                    key={`${a.answerId}-${i}`}
+                    className="flex items-center justify-between rounded-lg bg-olive/10 px-3 py-1.5 text-sm"
+                  >
+                    <span className="text-ink">
+                      {a.canonicalAnswer}
+                      {a.source === "main" && <span className="ml-1.5 text-xs text-stone">(main round)</span>}
+                    </span>
+                    <span className="font-serif-heading text-gold">{a.score}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
-          </>
-        )
+          )}
+        </>
       )}
 
       <button
@@ -327,7 +353,7 @@ export function BonusRoundScreen({
         onClick={finish}
         className="mt-auto w-full rounded-full bg-indigo px-6 py-4 text-lg font-medium text-parchment transition-colors hover:bg-indigo-dim"
       >
-        {allDone ? "See results" : "Lock in my bonus score now"}
+        Lock in my bonus score now
       </button>
     </div>
   );

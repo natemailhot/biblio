@@ -122,11 +122,13 @@ export function ResultsScreen({
   returning = false,
   sessionId,
   dailySetId,
+  onPlayBonusRound,
 }: {
   results: SessionResults;
   returning?: boolean;
   sessionId?: string;
   dailySetId?: string;
+  onPlayBonusRound?: () => void;
 }) {
   const [copied, setCopied] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
@@ -134,15 +136,23 @@ export function ResultsScreen({
   const [reportSubmitting, setReportSubmitting] = useState(false);
   const [reportSent, setReportSent] = useState(false);
   const [reportError, setReportError] = useState<string | null>(null);
-  const [bonusRound, setBonusRound] = useState<BonusRoundStatus | null>(null);
+  const [bonusRoundStatus, setBonusRoundStatus] = useState<BonusRoundStatus | null>(null);
   const [bonusCopied, setBonusCopied] = useState(false);
 
   useEffect(() => {
     if (!sessionId) return;
     fetchJson<BonusRoundStatus>(`/api/sessions/${sessionId}/bonus-round`)
-      .then((s) => setBonusRound(s.completedAt ? s : null))
+      .then(setBonusRoundStatus)
       .catch(() => {});
   }, [sessionId]);
+
+  const bonusRound = bonusRoundStatus?.completedAt ? bonusRoundStatus : null;
+  // Normally the bonus round is only offered before results are revealed —
+  // this dev-only reopening (see the button below) is a deliberate,
+  // temporary exception so it can be tested by anyone, even after viewing
+  // answers, without touching that rule for real players yet.
+  const canOfferBonusRoundAnyway =
+    !!onPlayBonusRound && !!sessionId && bonusRoundStatus !== null && !bonusRoundStatus.completedAt;
 
   const grid = results.questionResults
     .map((q) => (q.result === "accepted" && q.tier ? TIER_META[q.tier].shareEmoji : MISS_EMOJI))
@@ -318,6 +328,23 @@ export function ResultsScreen({
               {bonusCopied ? "Copied" : "Share"}
             </button>
           </div>
+        </div>
+      )}
+
+      {canOfferBonusRoundAnyway && (
+        <div className="rounded-2xl border border-dashed border-stone px-5 py-4 text-center">
+          <p className="text-xs font-medium uppercase tracking-wide text-stone">🛠 Dev feature</p>
+          <p className="mt-1 text-sm text-stone-dark">
+            Normally the Bonus Round is only offered before you see your results. For now it&apos;s open
+            to everyone for testing, even after viewing answers.
+          </p>
+          <button
+            type="button"
+            onClick={onPlayBonusRound}
+            className="mt-3 rounded-full border-2 border-stone-dark px-5 py-2 text-sm font-medium text-stone-dark transition-colors hover:bg-white/60"
+          >
+            Play the Bonus Round anyway
+          </button>
         </div>
       )}
 

@@ -7,10 +7,14 @@ import { buildBonusRoundStatus } from "@/lib/bonusRound";
 import type { ChallengeAnswer, SubmitBonusRoundAnswerResponse } from "@/lib/types";
 
 // Records a guess for one question during the bonus round. Unlike the main
-// round, there's no per-question timer or single-guess lock here — the
-// player can keep guessing any open question until they get it right or
-// the whole round's 5-minute clock (enforced server-side via
-// bonus_round_sessions.ends_at) runs out.
+// round, there's no per-question lock or single-guess limit here — a
+// question accepts unlimited *distinct* correct answers (the goal is the
+// highest cumulative sum), and a player can freely switch between all 5
+// questions, guessing as many times as they want on each until the whole
+// round's 5-minute clock (enforced server-side via
+// bonus_round_sessions.ends_at) runs out. The only thing that's blocked is
+// re-crediting the exact same answer twice, whether it was already found in
+// the main round or earlier in this bonus round.
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ sessionId: string; challengeId: string }> }
@@ -55,27 +59,26 @@ export async function POST(
     return NextResponse.json({ error: "Question not found in this session" }, { status: 404 });
   }
 
-  // Already correct in the main round, or already correct earlier in this
-  // bonus round — nothing left to attempt here.
-  const [{ data: mainCorrect }, { data: bonusCorrect }] = await Promise.all([
+  // Every answer id already credited for this question, whether from the
+  // main round or earlier in this bonus round — re-matching one of these
+  // doesn't score again.
+  const [{ data: mainFound }, { data: bonusFound }] = await Promise.all([
     supabase
       .from("submitted_answers")
-      .select("id")
+      .select("matched_answer_id")
       .eq("session_id", sessionId)
       .eq("challenge_id", challengeId)
-      .eq("result", "accepted")
-      .maybeSingle(),
+      .eq("result", "accepted"),
     supabase
       .from("bonus_round_answers")
-      .select("id")
+      .select("matched_answer_id")
       .eq("bonus_round_session_id", bonusSession.id)
       .eq("challenge_id", challengeId)
-      .eq("result", "accepted")
-      .maybeSingle(),
+      .eq("result", "accepted"),
   ]);
-  if (mainCorrect || bonusCorrect) {
-    return NextResponse.json({ error: "This question is already answered" }, { status: 409 });
-  }
+  const alreadyFoundIds = new Set(
+    [...(mainFound ?? []), ...(bonusFound ?? [])].map((a) => a.matched_answer_id).filter((id): id is string => !!id)
+  );
 
   const normalizedInput = normalizeAnswer(rawInput);
 
@@ -126,6 +129,14 @@ export async function POST(
           currentScore: 0,
         }
       : { result: "invalid", score: 0, message: "Not in today's answer set.", currentScore: 0 };
+  } else if (alreadyFoundIds.has(matched.id)) {
+    response = {
+      result: "duplicate",
+      score: 0,
+      canonicalAnswer: matched.canonicalAnswer,
+      message: `You already found "${matched.canonicalAnswer}" — try another.`,
+      currentScore: 0,
+    };
   } else {
     matchedAnswerId = matched.id;
     response = {
@@ -149,7 +160,7 @@ export async function POST(
     result: response.result,
     score: response.result === "accepted" ? response.score : null,
     tier: response.result === "accepted" ? (response.tier ?? null) : null,
-    canonical_answer: response.result === "accepted" ? (response.canonicalAnswer ?? null) : null,
+    canonical_answer: response.result !== "invalid" ? (response.canonicalAnswer ?? null) : null,
     explanation: matched?.explanation ?? null,
     references: matched?.references ?? null,
   });

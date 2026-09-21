@@ -152,7 +152,7 @@ export default function ArchivePage() {
         )
       )}
 
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="grid flex-1 grid-cols-3 gap-1.5">
           {FILTERS.map((f) => (
             <button
@@ -160,7 +160,7 @@ export default function ArchivePage() {
               type="button"
               onClick={() => setFilter(f.key)}
               aria-pressed={filter === f.key}
-              className={`rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${
+              className={`overflow-hidden text-ellipsis whitespace-nowrap rounded-xl border px-2 py-2 text-xs font-medium transition-colors sm:px-3 sm:text-sm ${
                 filter === f.key
                   ? "border-indigo bg-indigo text-parchment"
                   : "border-stone/40 bg-white/60 text-ink hover:border-indigo"
@@ -170,7 +170,7 @@ export default function ArchivePage() {
             </button>
           ))}
         </div>
-        <div className="flex gap-1 rounded-xl border border-stone/40 bg-white/60 p-1">
+        <div className="flex gap-1 self-start rounded-xl border border-stone/40 bg-white/60 p-1">
           {(["list", "calendar"] as const).map((v) => (
             <button
               key={v}

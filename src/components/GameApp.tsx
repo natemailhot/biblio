@@ -151,6 +151,16 @@ export function GameApp({ date }: { date?: string } = {}) {
     setPhase("bonusRound");
   };
 
+  // Dev-only escape hatch: normally the offer is one-shot right after the
+  // Scripture Bonus, before anything is revealed. For now, anyone can
+  // reopen it straight from the results screen (see ResultsScreen's "dev
+  // feature" button) — the backend has no separate gate for this, it's
+  // purely that GameApp otherwise never routes back to this phase.
+  const handlePlayBonusRoundFromResults = () => {
+    setResumedBonusStatus(undefined);
+    setPhase("bonusRound");
+  };
+
   const handleBonusRoundDone = async () => {
     if (!sessionId || !dailySet) return;
     try {
@@ -214,6 +224,7 @@ export function GameApp({ date }: { date?: string } = {}) {
         returning={returning}
         sessionId={sessionId ?? undefined}
         dailySetId={dailySet?.id}
+        onPlayBonusRound={handlePlayBonusRoundFromResults}
       />
     );
   }
