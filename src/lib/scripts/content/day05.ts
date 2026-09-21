@@ -313,7 +313,7 @@ export const DAY_05: SeedDay = {
       answers: [
         {
           canonical: "The Noahic Covenant",
-          aliases: ["covenant with noah"],
+          aliases: ["covenant with noah", "noah"],
           score: 10,
           tier: "outer-court",
           references: [{ book: "Genesis", chapterStart: 9, verseStart: 8, verseEnd: 17, display: "Genesis 9:8-17" }],
@@ -321,16 +321,15 @@ export const DAY_05: SeedDay = {
         },
         {
           canonical: "The Abrahamic Covenant",
-          aliases: ["covenant with abraham"],
+          aliases: ["covenant with abraham", "abraham"],
           score: 10,
           tier: "outer-court",
           references: [{ book: "Genesis", chapterStart: 17, verseStart: 1, verseEnd: 8, display: "Genesis 17:1-8" }],
           explanation: "God promises Abraham numerous descendants and the land of Canaan.",
-          exclusions: ["abraham"],
         },
         {
           canonical: "The Mosaic Covenant",
-          aliases: ["covenant at sinai"],
+          aliases: ["covenant at sinai", "moses"],
           score: 20,
           tier: "bronze-altar",
           references: [{ book: "Exodus", chapterStart: 24, verseStart: 7, verseEnd: 8, display: "Exodus 24:7-8" }],
@@ -338,7 +337,7 @@ export const DAY_05: SeedDay = {
         },
         {
           canonical: "The Davidic Covenant",
-          aliases: ["covenant with david"],
+          aliases: ["covenant with david", "david"],
           score: 20,
           tier: "bronze-altar",
           references: [{ book: "2 Samuel", chapterStart: 7, verseStart: 12, verseEnd: 16, display: "2 Samuel 7:12-16" }],
@@ -379,7 +378,7 @@ export const DAY_05: SeedDay = {
         },
         {
           canonical: "The Covenant with Levi",
-          aliases: ["covenant of Levi","Levitical covenant","covenant of life and peace"],
+          aliases: ["covenant of Levi","Levitical covenant","covenant of life and peace","levi"],
           score: 85,
           tier: "holy-of-holies",
           references: [{ book: "Malachi", chapterStart: 2, verseStart: 4, verseEnd: 5, display: "Malachi 2:4-5" }],
