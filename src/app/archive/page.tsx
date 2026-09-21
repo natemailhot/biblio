@@ -17,6 +17,50 @@ const FILTERS: { key: Filter; label: string }[] = [
   { key: "unplayed", label: "To play" },
 ];
 
+const WEEKDAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
+const MONTH_LABELS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+// Parsed as a local calendar date (not UTC midnight) so month/weekday math
+// lines up with the player's own local dates, same as the rest of the app.
+function parseLocalDate(iso: string): Date {
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function toIsoDate(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+type MonthGrid = { year: number; month: number; cells: (Date | null)[] };
+
+// One grid per calendar month from the first game day's month through the
+// current month, each padded with leading/trailing blanks so weekdays line
+// up like a real calendar.
+function buildMonthGrids(firstDate: Date, today: Date): MonthGrid[] {
+  const grids: MonthGrid[] = [];
+  const cursor = new Date(firstDate.getFullYear(), firstDate.getMonth(), 1);
+  const last = new Date(today.getFullYear(), today.getMonth(), 1);
+
+  while (cursor <= last) {
+    const year = cursor.getFullYear();
+    const month = cursor.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const firstWeekday = new Date(year, month, 1).getDay();
+
+    const cells: (Date | null)[] = Array(firstWeekday).fill(null);
+    for (let day = 1; day <= daysInMonth; day++) cells.push(new Date(year, month, day));
+    while (cells.length % 7 !== 0) cells.push(null);
+
+    grids.push({ year, month, cells });
+    cursor.setMonth(cursor.getMonth() + 1);
+  }
+
+  return grids;
+}
+
 export default function ArchivePage() {
   const [days, setDays] = useState<ArchiveDay[] | null>(null);
   const [scoreByDay, setScoreByDay] = useState<Map<number, number>>(new Map());
@@ -62,6 +106,13 @@ export default function ArchivePage() {
     return true;
   });
 
+  const dayByDate = new Map((days ?? []).map((d) => [d.date, d]));
+  const visibleDates = new Set(visibleDays.map((d) => d.date));
+  const monthGrids =
+    days && days.length > 0
+      ? buildMonthGrids(parseLocalDate(days[days.length - 1].date), new Date())
+      : [];
+
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-6 py-12">
       <p className="font-serif-heading text-sm uppercase tracking-[0.2em] text-gold">
@@ -69,7 +120,9 @@ export default function ArchivePage() {
       </p>
       <div>
         <h1 className="font-serif-heading text-3xl font-semibold text-ink">Archive</h1>
-        <p className="mt-1 text-stone-dark">Every day since Day 1. Replay any of them.</p>
+        <p className="mt-1 text-stone-dark">
+          Every day since Day 1 — catch up on ones you missed, or revisit ones you&apos;ve played.
+        </p>
         {days && (
           <p className="mt-1 text-sm text-stone">
             {playedCount} of {totalCount} played · {pct}%
@@ -137,32 +190,65 @@ export default function ArchivePage() {
       {error && <p className="text-sm text-indigo-dim">{error}</p>}
 
       {days && view === "calendar" && (
-        <div className="rounded-2xl border border-gold-soft bg-white/60 p-4">
-          {visibleDays.length === 0 ? (
-            <p className="px-2 py-6 text-center text-stone-dark">Nothing here yet.</p>
-          ) : (
-            <div className="grid grid-cols-7 gap-2">
-              {[...visibleDays].reverse().map((d) => {
-                const played = isPlayed(d);
-                const score = scoreByDay.get(d.dayNumber);
-                return (
-                  <Link
-                    key={d.dailySetId}
-                    href={`/day/${d.date}`}
-                    title={`Day ${d.dayNumber} · ${d.date}${score != null ? ` · ${score}` : ""}`}
-                    className={`flex aspect-square flex-col items-center justify-center rounded-lg border text-xs font-medium transition-colors ${
-                      played
-                        ? "border-gold bg-gold/25 text-ink hover:bg-gold/40"
-                        : "border-stone/30 bg-white/40 text-stone-dark hover:border-indigo"
-                    }`}
-                  >
-                    <span className="font-serif-heading tabular-nums">{d.dayNumber}</span>
-                    {score != null && <span className="text-[10px] text-gold">{score}</span>}
-                  </Link>
-                );
-              })}
-            </div>
+        <div className="flex flex-col gap-6">
+          {monthGrids.length === 0 && (
+            <p className="rounded-2xl border border-gold-soft bg-white/60 p-4 text-center text-stone-dark">
+              Nothing here yet.
+            </p>
           )}
+          {[...monthGrids].reverse().map((grid) => (
+            <div key={`${grid.year}-${grid.month}`} className="rounded-2xl border border-gold-soft bg-white/60 p-4">
+              <p className="mb-3 font-serif-heading text-sm uppercase tracking-[0.2em] text-gold">
+                {MONTH_LABELS[grid.month]} {grid.year}
+              </p>
+              <div className="grid grid-cols-7 gap-1.5">
+                {WEEKDAY_LABELS.map((w, i) => (
+                  <div key={i} className="text-center text-[10px] uppercase tracking-wide text-stone">
+                    {w}
+                  </div>
+                ))}
+                {grid.cells.map((date, i) => {
+                  if (!date) return <div key={i} />;
+                  const iso = toIsoDate(date);
+                  const d = dayByDate.get(iso);
+                  const upcoming = !d;
+                  const matchesFilter = d ? visibleDates.has(iso) : true;
+                  const played = d ? isPlayed(d) : false;
+                  const score = d ? scoreByDay.get(d.dayNumber) : undefined;
+
+                  if (upcoming) {
+                    return (
+                      <div
+                        key={i}
+                        title="Not yet available"
+                        className="flex aspect-square flex-col items-center justify-center rounded-lg border border-stone/15 bg-white/20 text-xs text-stone/50"
+                      >
+                        <span className="tabular-nums">{date.getDate()}</span>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <Link
+                      key={i}
+                      href={`/day/${iso}`}
+                      title={`Day ${d.dayNumber} · ${iso}${score != null ? ` · ${score}` : ""}`}
+                      className={`flex aspect-square flex-col items-center justify-center rounded-lg border text-xs font-medium transition-colors ${
+                        !matchesFilter
+                          ? "border-stone/15 bg-white/20 text-stone/40"
+                          : played
+                            ? "border-gold bg-gold/25 text-ink hover:bg-gold/40"
+                            : "border-stone/30 bg-white/40 text-stone-dark hover:border-indigo"
+                      }`}
+                    >
+                      <span className="font-serif-heading tabular-nums">{date.getDate()}</span>
+                      {matchesFilter && score != null && <span className="text-[10px] text-gold">{score}</span>}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
