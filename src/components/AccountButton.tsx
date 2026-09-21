@@ -43,6 +43,25 @@ export function AccountButton() {
       .catch(() => setMe({ signedIn: false }));
   }, []);
 
+  // /auth/callback appends this when sign-in fails (e.g. the PKCE code
+  // exchange failing — a mobile browser dropping the code_verifier cookie
+  // across the multi-hop OAuth redirect is a known cause) — surface it
+  // instead of silently landing back on a signed-out page with no
+  // explanation, then strip it from the URL so a refresh doesn't re-show it.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const authError = params.get("authError");
+    if (authError) {
+      // One-time read of the URL on mount, not derived from props/state.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setError(authError);
+      setOpen(true);
+      params.delete("authError");
+      const rest = params.toString();
+      window.history.replaceState(null, "", window.location.pathname + (rest ? `?${rest}` : ""));
+    }
+  }, []);
+
   useEffect(() => {
     if (!open) return;
     const handleClick = (e: MouseEvent) => {
