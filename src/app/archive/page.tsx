@@ -8,11 +8,19 @@ import { getCompletedSessionId } from "@/lib/completedSessions";
 import type { AccountMeResponse, PlayerStats } from "@/lib/types";
 
 type ArchiveDay = { dailySetId: string; dayNumber: number; date: string };
+type Filter = "all" | "played" | "unplayed";
+
+const FILTERS: { key: Filter; label: string }[] = [
+  { key: "all", label: "All" },
+  { key: "played", label: "Completed" },
+  { key: "unplayed", label: "To play" },
+];
 
 export default function ArchivePage() {
   const [days, setDays] = useState<ArchiveDay[] | null>(null);
   const [scoreByDay, setScoreByDay] = useState<Map<number, number>>(new Map());
   const [playedIds, setPlayedIds] = useState<Set<string>>(new Set());
+  const [filter, setFilter] = useState<Filter>("all");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -42,49 +50,108 @@ export default function ArchivePage() {
   const totalCount = days?.length ?? 0;
   const pct = totalCount > 0 ? Math.round((playedCount / totalCount) * 100) : 0;
 
+  const visibleDays = (days ?? []).filter((d) => {
+    if (filter === "played") return isPlayed(d);
+    if (filter === "unplayed") return !isPlayed(d);
+    return true;
+  });
+
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 px-6 py-12">
+    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-6 py-12">
       <p className="font-serif-heading text-sm uppercase tracking-[0.2em] text-gold">
         Ascend {BRAND_EMOJI} · Archive
       </p>
       <div>
         <h1 className="font-serif-heading text-3xl font-semibold text-ink">Archive</h1>
+        <p className="mt-1 text-stone-dark">Every day since Day 1. Replay any of them.</p>
         {days && (
-          <p className="mt-1 text-stone-dark">
+          <p className="mt-1 text-sm text-stone">
             {playedCount} of {totalCount} played · {pct}%
           </p>
         )}
       </div>
 
+      <div className="grid grid-cols-3 gap-1.5">
+        {FILTERS.map((f) => (
+          <button
+            key={f.key}
+            type="button"
+            onClick={() => setFilter(f.key)}
+            aria-pressed={filter === f.key}
+            className={`rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${
+              filter === f.key
+                ? "border-indigo bg-indigo text-parchment"
+                : "border-stone/40 bg-white/60 text-ink hover:border-indigo"
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
       {error && <p className="text-sm text-indigo-dim">{error}</p>}
 
       {days && (
-        <ul className="flex flex-col gap-1.5">
-          {days.map((d) => {
-            const played = isPlayed(d);
-            const score = scoreByDay.get(d.dayNumber);
-            return (
-              <li key={d.dailySetId}>
-                <Link
-                  href={`/day/${d.date}`}
-                  className="flex items-center justify-between rounded-xl border border-stone/30 bg-white/60 px-4 py-3 transition-colors hover:border-indigo"
-                >
-                  <span className="text-ink">
-                    Day {d.dayNumber} <span className="text-xs text-stone">· {d.date}</span>
-                  </span>
-                  {played ? (
-                    <span className="flex items-center gap-2 text-sm text-olive">
-                      {score != null && <span className="font-serif-heading font-semibold text-gold">{score}</span>}
-                      ✓ Played
-                    </span>
-                  ) : (
-                    <span className="text-sm font-medium text-indigo">Play →</span>
-                  )}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+        <div className="overflow-hidden rounded-2xl border border-gold-soft bg-white/60">
+          <table className="w-full border-collapse text-left">
+            <thead>
+              <tr className="border-b border-stone/20 text-xs uppercase tracking-wide text-stone">
+                <th scope="col" className="px-4 py-2.5 font-medium">
+                  No.
+                </th>
+                <th scope="col" className="px-4 py-2.5 font-medium">
+                  Date
+                </th>
+                <th scope="col" className="px-4 py-2.5 text-right font-medium">
+                  Score
+                </th>
+                <th scope="col" className="px-4 py-2.5 text-right font-medium">
+                  Status
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {visibleDays.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="px-4 py-6 text-center text-stone-dark">
+                    Nothing here yet.
+                  </td>
+                </tr>
+              )}
+              {visibleDays.map((d) => {
+                const played = isPlayed(d);
+                const score = scoreByDay.get(d.dayNumber);
+                return (
+                  <tr key={d.dailySetId} className="border-b border-stone/10 last:border-0 hover:bg-white/60">
+                    <td className="px-4 py-3">
+                      <Link href={`/day/${d.date}`} className="block font-serif-heading text-stone-dark tabular-nums">
+                        {String(d.dayNumber).padStart(3, "0")}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3">
+                      <Link href={`/day/${d.date}`} className="block text-ink">
+                        {d.date}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <Link href={`/day/${d.date}`} className="block font-serif-heading font-semibold text-gold">
+                        {score != null ? score : played ? "✓" : "—"}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <Link
+                        href={`/day/${d.date}`}
+                        className={`block text-sm font-medium ${played ? "text-olive" : "text-indigo"}`}
+                      >
+                        {played ? "Completed" : "Play →"}
+                      </Link>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
 
       <Link href="/" className="text-center text-sm font-medium text-indigo underline decoration-gold-soft underline-offset-4">
