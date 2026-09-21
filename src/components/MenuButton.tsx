@@ -15,7 +15,7 @@ type ArchiveDay = { dailySetId: string; dayNumber: number; date: string };
 export function MenuButton() {
   const [open, setOpen] = useState(false);
   const [days, setDays] = useState<ArchiveDay[] | null>(null);
-  const [playedCount, setPlayedCount] = useState(0);
+  const [playedIds, setPlayedIds] = useState<Set<string>>(new Set());
   const [me, setMe] = useState<AccountMeResponse | null>(null);
   const [leaderboard, setLeaderboard] = useState<LeaderboardResponse | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -35,14 +35,15 @@ export function MenuButton() {
         if (!days) return;
 
         if (res.signedIn && res.hasProfile) {
-          // Authoritative server-side count — a device that's never played
-          // a given day locally (a new browser, a phone vs. desktop) would
-          // otherwise under-count based on localStorage alone.
+          // Authoritative server-side record — a device that's never
+          // played a given day locally (a new browser, a phone vs.
+          // desktop) would otherwise under-count based on localStorage
+          // alone.
           const stats = await fetchJson<PlayerStats>("/api/stats");
           const playedDayNumbers = new Set(stats.history.map((h) => h.dayNumber));
-          setPlayedCount(days.filter((d) => playedDayNumbers.has(d.dayNumber)).length);
+          setPlayedIds(new Set(days.filter((d) => playedDayNumbers.has(d.dayNumber)).map((d) => d.dailySetId)));
         } else {
-          setPlayedCount(days.filter((d) => getCompletedSessionId(d.dailySetId)).length);
+          setPlayedIds(new Set(days.filter((d) => getCompletedSessionId(d.dailySetId)).map((d) => d.dailySetId)));
         }
       })
       .catch(() => setMe({ signedIn: false }));
@@ -73,8 +74,11 @@ export function MenuButton() {
   }, [open]);
 
   const total = days?.length ?? 0;
+  const playedCount = playedIds.size;
   const pct = total > 0 ? Math.round((playedCount / total) * 100) : 0;
   const topThree = leaderboard?.entries.slice(0, 3) ?? [];
+  // Oldest first so the grid fills left-to-right like a real calendar.
+  const gridDays = days ? [...days].reverse() : [];
 
   return (
     <div ref={containerRef} className="fixed bottom-4 left-4 z-20 sm:bottom-auto sm:top-4">
@@ -101,10 +105,23 @@ export function MenuButton() {
                   {playedCount} of {total} played · {pct}%
                 </p>
               )}
+              {gridDays.length > 0 && (
+                <div className="mt-2 grid grid-cols-7 gap-1" aria-hidden="true">
+                  {gridDays.map((d) => (
+                    <span
+                      key={d.dailySetId}
+                      title={`Day ${d.dayNumber}`}
+                      className={`h-4 w-4 rounded-sm ${
+                        playedIds.has(d.dailySetId) ? "bg-gold" : "border border-stone/30 bg-white/40"
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
               <Link
                 href="/archive"
                 onClick={() => setOpen(false)}
-                className="mt-1 inline-block text-sm font-medium text-indigo underline decoration-gold-soft underline-offset-4"
+                className="mt-2 inline-block text-sm font-medium text-indigo underline decoration-gold-soft underline-offset-4"
               >
                 Open the archive →
               </Link>
