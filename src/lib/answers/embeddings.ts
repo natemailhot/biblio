@@ -12,10 +12,12 @@ export const EMBEDDING_MODEL = "google/text-embedding-005";
 // A guess must beat this floor to be offered as a "did you mean?" at all,
 // and must beat the runner-up candidate by this margin so a genuinely
 // ambiguous guess (could plausibly be either of two answers) doesn't
-// silently pick one. Both thresholds are a starting point — tune against
-// real misses once this ships.
-const MIN_SIMILARITY = 0.55;
-const MIN_MARGIN = 0.05;
+// silently pick one. Raised from the original 0.55/0.05 launch values —
+// player feedback (and our own testing) found suggestions firing on
+// guesses that weren't actually close; this only makes the floor/margin
+// stricter, the matching logic itself is unchanged.
+const MIN_SIMILARITY = 0.65;
+const MIN_MARGIN = 0.08;
 
 export function buildFingerprint(canonical: string, aliases: string[], explanation: string): string {
   return [canonical, ...aliases, explanation].join(". ");
