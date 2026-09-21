@@ -176,6 +176,11 @@ export function MenuButton() {
               <Link href="/privacy" onClick={() => setOpen(false)} className="text-indigo underline decoration-gold-soft underline-offset-4">
                 Privacy
               </Link>
+              {me?.signedIn && me.isAdmin && (
+                <Link href="/admin" onClick={() => setOpen(false)} className="text-indigo underline decoration-gold-soft underline-offset-4">
+                  🛠 Admin
+                </Link>
+              )}
             </div>
 
             <p className="text-center text-xs text-stone">made by Wain Famous</p>

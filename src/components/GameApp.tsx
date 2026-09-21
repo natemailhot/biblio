@@ -15,8 +15,12 @@ type Phase = "loading" | "intro" | "ascent" | "bonus" | "bonusRound" | "results"
 
 // `date` lets the archive page replay a past day through the exact same
 // flow as today's game — omit it (the normal path) to use the player's
-// own local calendar date.
-export function GameApp({ date }: { date?: string } = {}) {
+// own local calendar date. `adminPreview` points the initial fetch at the
+// admin-only daily-set route instead, which ignores publish status — used
+// by /admin/day/[date] so approved admins can play upcoming, unpublished
+// days before they go live. Everything downstream (sessions, answers,
+// bonus, bonus round) is unchanged; only that first lookup differs.
+export function GameApp({ date, adminPreview }: { date?: string; adminPreview?: boolean } = {}) {
   const [phase, setPhase] = useState<Phase>("loading");
   const [dailySet, setDailySet] = useState<DailySetSummary | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -64,7 +68,8 @@ export function GameApp({ date }: { date?: string } = {}) {
     // en-CA formats as YYYY-MM-DD; omitting timeZone uses the browser's
     // own local timezone, so the day rolls over at each player's midnight.
     const targetDate = date ?? new Date().toLocaleDateString("en-CA");
-    fetchJson<DailySetSummary>(`/api/daily-set?date=${targetDate}`)
+    const dailySetUrl = adminPreview ? `/api/admin/daily-set?date=${targetDate}` : `/api/daily-set?date=${targetDate}`;
+    fetchJson<DailySetSummary>(dailySetUrl)
       .then(async (d) => {
         setDailySet(d);
 
@@ -108,8 +113,9 @@ export function GameApp({ date }: { date?: string } = {}) {
         setErrorMessage(err instanceof Error ? err.message : "Could not load today's Ascend.");
         setPhase("error");
       });
-    // `date` is effectively fixed per mount: /day/[date] remounts this
-    // component on route change, and the root page never passes it at all.
+    // `date` and `adminPreview` are effectively fixed per mount: each route
+    // that passes them remounts this component on route change, and the
+    // root page never passes either.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

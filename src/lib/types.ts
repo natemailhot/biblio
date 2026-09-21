@@ -171,8 +171,8 @@ export type SubmitFeedbackRequest = {
 
 export type AccountMeResponse =
   | { signedIn: false }
-  | { signedIn: true; hasProfile: false }
-  | { signedIn: true; hasProfile: true; username: string };
+  | { signedIn: true; hasProfile: false; isAdmin: boolean }
+  | { signedIn: true; hasProfile: true; username: string; isAdmin: boolean };
 
 export type PlayerStatsHistoryEntry = {
   dayNumber: number;

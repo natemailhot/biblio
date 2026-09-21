@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
-import type { DailySetSummary } from "@/lib/types";
+import { buildDailySetSummary } from "@/lib/dailySet";
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -37,48 +37,14 @@ export async function GET(req: NextRequest) {
     dailySet = fallback.data;
   }
 
-  if (!dailySet || !dailySet.scripture_bonus_id) {
+  if (!dailySet) {
     return NextResponse.json({ error: "No published daily set available" }, { status: 404 });
   }
 
-  const [{ data: bonus }, { data: questions }] = await Promise.all([
-    supabase
-      .from("scripture_bonus")
-      .select("id, display_text, canon_scope")
-      .eq("id", dailySet.scripture_bonus_id)
-      .single(),
-    supabase
-      .from("daily_challenges")
-      .select("id, slot, prompt, instructions, what_counts, duration_seconds")
-      .eq("daily_set_id", dailySet.id)
-      .order("slot", { ascending: true }),
-  ]);
-
-  if (!bonus) {
-    return NextResponse.json({ error: "Daily set is missing its Scripture Bonus" }, { status: 500 });
+  const summary = await buildDailySetSummary(supabase, dailySet);
+  if (!summary) {
+    return NextResponse.json({ error: "Daily set is missing its Scripture Bonus or questions" }, { status: 500 });
   }
-  if (!questions || questions.length === 0) {
-    return NextResponse.json({ error: "Daily set has no questions" }, { status: 500 });
-  }
-
-  const summary: DailySetSummary = {
-    id: dailySet.id,
-    dayNumber: dailySet.day_number,
-    date: dailySet.date,
-    questions: questions.map((q) => ({
-      id: q.id,
-      slot: q.slot,
-      prompt: q.prompt,
-      instructions: q.instructions,
-      whatCounts: q.what_counts,
-      durationSeconds: q.duration_seconds,
-    })),
-    scriptureBonus: {
-      id: bonus.id,
-      displayText: bonus.display_text,
-      canonScope: bonus.canon_scope,
-    },
-  };
 
   return NextResponse.json(summary);
 }

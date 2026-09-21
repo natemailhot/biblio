@@ -137,6 +137,22 @@ export function ResultsScreen({
   const [reportSent, setReportSent] = useState(false);
   const [reportError, setReportError] = useState<string | null>(null);
   const [bonusRoundStatus, setBonusRoundStatus] = useState<BonusRoundStatus | null>(null);
+  const [nextAscendIn, setNextAscendIn] = useState("00:00:00");
+
+  useEffect(() => {
+    const tick = () => {
+      const now = new Date();
+      const nextMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
+      const ms = Math.max(0, nextMidnight.getTime() - now.getTime());
+      const h = Math.floor(ms / 3_600_000);
+      const m = Math.floor((ms % 3_600_000) / 60_000);
+      const s = Math.floor((ms % 60_000) / 1_000);
+      setNextAscendIn(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
   const [bonusCopied, setBonusCopied] = useState(false);
 
   useEffect(() => {
@@ -283,27 +299,6 @@ export function ResultsScreen({
         </div>
       </div>
 
-      <div>
-        <h3 className="font-serif-heading text-lg font-semibold text-ink">Your climb</h3>
-        <ul className="mt-3 flex flex-col gap-2">
-          {results.questionResults.map((q) => (
-            <QuestionCard key={q.slot} q={q} />
-          ))}
-        </ul>
-      </div>
-
-      <div className="rounded-2xl border border-gold-soft bg-white/60 p-5">
-        <p className="font-serif-heading text-sm uppercase tracking-[0.2em] text-gold">
-          Scripture Bonus
-        </p>
-        <p className="mt-1 font-serif-heading text-xl font-semibold text-ink">
-          {results.scriptureBonus.book} · {results.scriptureBonus.referenceDisplay}
-        </p>
-        <p className="mt-2 text-ink">“{results.scriptureBonus.displayText}”</p>
-        <p className="mt-2 text-sm text-stone-dark">{results.scriptureBonus.contextNote}</p>
-        <p className="mt-1 text-xs text-stone">{results.scriptureBonus.translation}</p>
-      </div>
-
       {bonusRound && (
         <div className="rounded-2xl border border-gold-soft bg-white/60 p-5">
           <p className="font-serif-heading text-sm uppercase tracking-[0.2em] text-gold">Bonus Round</p>
@@ -347,6 +342,55 @@ export function ResultsScreen({
           </button>
         </div>
       )}
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="rounded-2xl border border-gold-soft bg-white/60 p-5 text-center">
+          <p className="text-sm text-stone-dark">Next Ascend</p>
+          <p className="font-serif-heading text-3xl font-semibold tabular-nums text-ink">{nextAscendIn}</p>
+          <p className="mt-1 text-xs text-stone">Day {results.dayNumber + 1} drops at midnight, your time</p>
+          <Link
+            href="/archive"
+            className="mt-3 inline-block text-sm font-medium text-indigo underline decoration-gold-soft underline-offset-4"
+          >
+            Browse the archive →
+          </Link>
+        </div>
+
+        <div className="rounded-2xl border border-gold-soft bg-white/60 p-5">
+          <p className="font-serif-heading text-sm uppercase tracking-[0.2em] text-gold">Leaderboard</p>
+          <p className="mt-1 font-serif-heading text-xl font-semibold text-ink">Where do you rank?</p>
+          <p className="mt-1 text-sm text-stone-dark">
+            Today&apos;s top climbers, this week&apos;s best averages, and the longest streaks.
+          </p>
+          <Link
+            href="/leaderboard"
+            className="mt-2 inline-block text-sm font-medium text-indigo underline decoration-gold-soft underline-offset-4"
+          >
+            See the leaderboard →
+          </Link>
+        </div>
+      </div>
+
+      <div>
+        <h3 className="font-serif-heading text-lg font-semibold text-ink">Your climb</h3>
+        <ul className="mt-3 flex flex-col gap-2">
+          {results.questionResults.map((q) => (
+            <QuestionCard key={q.slot} q={q} />
+          ))}
+        </ul>
+      </div>
+
+      <div className="rounded-2xl border border-gold-soft bg-white/60 p-5">
+        <p className="font-serif-heading text-sm uppercase tracking-[0.2em] text-gold">
+          Scripture Bonus
+        </p>
+        <p className="mt-1 font-serif-heading text-xl font-semibold text-ink">
+          {results.scriptureBonus.book} · {results.scriptureBonus.referenceDisplay}
+        </p>
+        <p className="mt-2 text-ink">“{results.scriptureBonus.displayText}”</p>
+        <p className="mt-2 text-sm text-stone-dark">{results.scriptureBonus.contextNote}</p>
+        <p className="mt-1 text-xs text-stone">{results.scriptureBonus.translation}</p>
+      </div>
 
       <button
         type="button"
