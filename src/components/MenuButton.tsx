@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { track } from "@vercel/analytics";
 import { fetchJson } from "@/lib/fetchJson";
 import { getCompletedSessionId } from "@/lib/completedSessions";
 import type { AccountMeResponse, LeaderboardResponse, PlayerStats } from "@/lib/types";
@@ -73,6 +74,11 @@ export function MenuButton() {
     };
   }, [open]);
 
+  const goTo = (destination: string) => {
+    track("Menu Link Clicked", { destination });
+    setOpen(false);
+  };
+
   const total = days?.length ?? 0;
   const playedCount = playedIds.size;
   const pct = total > 0 ? Math.round((playedCount / total) * 100) : 0;
@@ -85,7 +91,10 @@ export function MenuButton() {
       <button
         type="button"
         onClick={() => {
-          if (!open) refresh();
+          if (!open) {
+            refresh();
+            track("Menu Opened");
+          }
           setOpen((o) => !o);
         }}
         aria-expanded={open}
@@ -120,7 +129,7 @@ export function MenuButton() {
               )}
               <Link
                 href="/archive"
-                onClick={() => setOpen(false)}
+                onClick={() => goTo("archive")}
                 className="mt-2 inline-block text-sm font-medium text-indigo underline decoration-gold-soft underline-offset-4"
               >
                 Open the archive →
@@ -133,14 +142,14 @@ export function MenuButton() {
               </p>
               <Link
                 href="/leaderboard"
-                onClick={() => setOpen(false)}
+                onClick={() => goTo("leaderboard")}
                 className="mt-1 inline-block text-sm font-medium text-indigo underline decoration-gold-soft underline-offset-4"
               >
                 See full leaderboard →
               </Link>
               <Link
                 href="/bonus-leaderboard"
-                onClick={() => setOpen(false)}
+                onClick={() => goTo("bonus-leaderboard")}
                 className="mt-1 block text-sm font-medium text-indigo underline decoration-gold-soft underline-offset-4"
               >
                 Bonus Round leaderboard →
@@ -164,20 +173,20 @@ export function MenuButton() {
             </div>
 
             <div className="flex flex-col gap-1.5 border-t border-stone/20 pt-4 text-sm">
-              <Link href="/submit-question" onClick={() => setOpen(false)} className="text-indigo underline decoration-gold-soft underline-offset-4">
+              <Link href="/submit-question" onClick={() => goTo("submit-question")} className="text-indigo underline decoration-gold-soft underline-offset-4">
                 Submit a question
               </Link>
-              <Link href="/feedback" onClick={() => setOpen(false)} className="text-indigo underline decoration-gold-soft underline-offset-4">
+              <Link href="/feedback" onClick={() => goTo("feedback")} className="text-indigo underline decoration-gold-soft underline-offset-4">
                 Feedback
               </Link>
-              <Link href="/about" onClick={() => setOpen(false)} className="text-indigo underline decoration-gold-soft underline-offset-4">
+              <Link href="/about" onClick={() => goTo("about")} className="text-indigo underline decoration-gold-soft underline-offset-4">
                 About
               </Link>
-              <Link href="/privacy" onClick={() => setOpen(false)} className="text-indigo underline decoration-gold-soft underline-offset-4">
+              <Link href="/privacy" onClick={() => goTo("privacy")} className="text-indigo underline decoration-gold-soft underline-offset-4">
                 Privacy
               </Link>
               {me?.signedIn && me.isAdmin && (
-                <Link href="/admin" onClick={() => setOpen(false)} className="text-indigo underline decoration-gold-soft underline-offset-4">
+                <Link href="/admin" onClick={() => goTo("admin")} className="text-indigo underline decoration-gold-soft underline-offset-4">
                   🛠 Admin
                 </Link>
               )}

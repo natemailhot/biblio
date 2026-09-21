@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { track } from "@vercel/analytics";
 import { fetchJson } from "@/lib/fetchJson";
 import { TierBadge } from "./TierBadge";
 import type {
@@ -65,10 +66,16 @@ export function BonusRoundScreen({
     return () => clearInterval(id);
   }, [stage]);
 
+  useEffect(() => {
+    if (stage === "offer") track("Bonus Round Offered", { dayNumber: dailySet.dayNumber });
+    // Fires once for the initial offer screen only, not on every stage change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const endsAtMs = status?.endsAt ? new Date(status.endsAt).getTime() : null;
   const timeLeftMs = endsAtMs ? endsAtMs - nowMs : 0;
 
-  const finish = async () => {
+  const finish = async (reason: "manual" | "timeout") => {
     if (finishedRef.current) return;
     finishedRef.current = true;
     setStage("finishing");
@@ -77,12 +84,13 @@ export function BonusRoundScreen({
     } catch {
       // Non-fatal — the finish endpoint is idempotent and safe to skip here.
     }
+    track("Bonus Round Finished", { dayNumber: dailySet.dayNumber, reason, score: status?.currentScore ?? 0, totalFound });
     onDone();
   };
 
   useEffect(() => {
     if (stage === "playing" && endsAtMs !== null && timeLeftMs <= 0) {
-      finish();
+      finish("timeout");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stage, timeLeftMs, endsAtMs]);
@@ -95,12 +103,16 @@ export function BonusRoundScreen({
       });
       setStatus(res);
       setStage("playing");
+      track("Bonus Round Started", { dayNumber: dailySet.dayNumber, baselineScore: res.baselineScore });
     } catch {
       setStage("offer");
     }
   };
 
-  const skip = () => onDone();
+  const skip = () => {
+    track("Bonus Round Skipped", { dayNumber: dailySet.dayNumber });
+    onDone();
+  };
 
   const submit = async (rawInput: string) => {
     if (!activeQuestionId || !rawInput.trim() || busy) return;
@@ -111,6 +123,7 @@ export function BonusRoundScreen({
         { method: "POST", body: JSON.stringify({ rawInput }) }
       );
       const answeredId = activeQuestionId;
+      track("Bonus Round Answer Submitted", { dayNumber: dailySet.dayNumber, result: res.result });
 
       if (res.result === "accepted") {
         setStatus((s) =>
@@ -350,7 +363,7 @@ export function BonusRoundScreen({
 
       <button
         type="button"
-        onClick={finish}
+        onClick={() => finish("manual")}
         className="mt-auto w-full rounded-full bg-indigo px-6 py-4 text-lg font-medium text-parchment transition-colors hover:bg-indigo-dim"
       >
         Lock in my bonus score now

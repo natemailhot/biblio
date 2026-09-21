@@ -309,6 +309,7 @@ export function ResultsScreen({
                 Separate from your Ascend score —{" "}
                 <Link
                   href="/bonus-leaderboard"
+                  onClick={() => track("Results Teaser Clicked", { dayNumber: results.dayNumber, destination: "bonus-leaderboard" })}
                   className="text-indigo underline decoration-gold-soft underline-offset-4"
                 >
                   see the bonus leaderboard
@@ -335,7 +336,10 @@ export function ResultsScreen({
           </p>
           <button
             type="button"
-            onClick={onPlayBonusRound}
+            onClick={() => {
+              track("Bonus Round Dev Reentry Clicked", { dayNumber: results.dayNumber });
+              onPlayBonusRound?.();
+            }}
             className="mt-3 rounded-full border-2 border-stone-dark px-5 py-2 text-sm font-medium text-stone-dark transition-colors hover:bg-white/60"
           >
             Play the Bonus Round anyway
@@ -350,6 +354,7 @@ export function ResultsScreen({
           <p className="mt-1 text-xs text-stone">Day {results.dayNumber + 1} drops at midnight, your time</p>
           <Link
             href="/archive"
+            onClick={() => track("Results Teaser Clicked", { dayNumber: results.dayNumber, destination: "archive" })}
             className="mt-3 inline-block text-sm font-medium text-indigo underline decoration-gold-soft underline-offset-4"
           >
             Browse the archive →
@@ -364,6 +369,7 @@ export function ResultsScreen({
           </p>
           <Link
             href="/leaderboard"
+            onClick={() => track("Results Teaser Clicked", { dayNumber: results.dayNumber, destination: "leaderboard" })}
             className="mt-2 inline-block text-sm font-medium text-indigo underline decoration-gold-soft underline-offset-4"
           >
             See the leaderboard →

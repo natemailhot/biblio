@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
-import { bucketScores } from "@/lib/content/scoreBuckets";
+import { bucketScores, BONUS_SCORE_BUCKETS } from "@/lib/content/scoreBuckets";
 
 const LIMIT = 50;
 
@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
       bestByIdentity.set(identity, score);
     }
   }
-  const histogram = bucketScores([...bestByIdentity.values()]);
+  const histogram = bucketScores([...bestByIdentity.values()], BONUS_SCORE_BUCKETS);
 
   const userIds = [...new Set((rows ?? []).map((r) => r.user_id).filter((id): id is string => !!id))];
   const { data: profiles } = await supabase.from("profiles").select("id, username").in("id", userIds);

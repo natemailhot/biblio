@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { track } from "@vercel/analytics";
 import { BRAND_EMOJI } from "@/lib/content/tiers";
 import { fetchJson } from "@/lib/fetchJson";
 import { ScoreHistogram } from "@/components/ScoreHistogram";
@@ -50,7 +51,10 @@ export default function BonusLeaderboardPage() {
           <button
             key={r.key}
             type="button"
-            onClick={() => setRange(r.key)}
+            onClick={() => {
+              setRange(r.key);
+              track("Bonus Leaderboard Range Changed", { range: r.key });
+            }}
             aria-pressed={range === r.key}
             className={`rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${
               range === r.key

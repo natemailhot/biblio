@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { track } from "@vercel/analytics";
 import { BRAND_EMOJI } from "@/lib/content/tiers";
 import { fetchJson } from "@/lib/fetchJson";
 import { getCompletedSessionId } from "@/lib/completedSessions";
@@ -113,6 +114,9 @@ export default function ArchivePage() {
       ? buildMonthGrids(parseLocalDate(days[days.length - 1].date), new Date())
       : [];
 
+  const trackDayOpen = (d: ArchiveDay, played: boolean) =>
+    track("Archive Day Opened", { dayNumber: d.dayNumber, played, view });
+
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-6 py-12">
       <p className="font-serif-heading text-sm uppercase tracking-[0.2em] text-gold">
@@ -158,7 +162,10 @@ export default function ArchivePage() {
             <button
               key={f.key}
               type="button"
-              onClick={() => setFilter(f.key)}
+              onClick={() => {
+                setFilter(f.key);
+                track("Archive Filter Changed", { filter: f.key });
+              }}
               aria-pressed={filter === f.key}
               className={`overflow-hidden text-ellipsis whitespace-nowrap rounded-xl border px-2 py-2 text-xs font-medium transition-colors sm:px-3 sm:text-sm ${
                 filter === f.key
@@ -175,7 +182,10 @@ export default function ArchivePage() {
             <button
               key={v}
               type="button"
-              onClick={() => setView(v)}
+              onClick={() => {
+                setView(v);
+                track("Archive View Changed", { view: v });
+              }}
               aria-pressed={view === v}
               className={`rounded-lg px-3 py-1.5 text-sm font-medium capitalize transition-colors ${
                 view === v ? "bg-indigo text-parchment" : "text-ink hover:bg-white"
@@ -232,6 +242,7 @@ export default function ArchivePage() {
                     <Link
                       key={i}
                       href={`/day/${iso}`}
+                      onClick={() => trackDayOpen(d, played)}
                       title={`Day ${d.dayNumber} · ${iso}${score != null ? ` · ${score}` : ""}`}
                       className={`flex aspect-square flex-col items-center justify-center rounded-lg border text-xs font-medium transition-colors ${
                         !matchesFilter
@@ -285,23 +296,32 @@ export default function ArchivePage() {
                 return (
                   <tr key={d.dailySetId} className="border-b border-stone/10 last:border-0 hover:bg-white/60">
                     <td className="px-4 py-3">
-                      <Link href={`/day/${d.date}`} className="block font-serif-heading text-stone-dark tabular-nums">
+                      <Link
+                        href={`/day/${d.date}`}
+                        onClick={() => trackDayOpen(d, played)}
+                        className="block font-serif-heading text-stone-dark tabular-nums"
+                      >
                         {String(d.dayNumber).padStart(3, "0")}
                       </Link>
                     </td>
                     <td className="px-4 py-3">
-                      <Link href={`/day/${d.date}`} className="block text-ink">
+                      <Link href={`/day/${d.date}`} onClick={() => trackDayOpen(d, played)} className="block text-ink">
                         {d.date}
                       </Link>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <Link href={`/day/${d.date}`} className="block font-serif-heading font-semibold text-gold">
+                      <Link
+                        href={`/day/${d.date}`}
+                        onClick={() => trackDayOpen(d, played)}
+                        className="block font-serif-heading font-semibold text-gold"
+                      >
                         {score != null ? score : played ? "✓" : "—"}
                       </Link>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <Link
                         href={`/day/${d.date}`}
+                        onClick={() => trackDayOpen(d, played)}
                         className={`block text-sm font-medium ${played ? "text-olive" : "text-indigo"}`}
                       >
                         {played ? "Completed" : "Play →"}
