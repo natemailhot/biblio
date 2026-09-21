@@ -31,25 +31,47 @@ export function GameApp({ date }: { date?: string } = {}) {
       .then(async (d) => {
         setDailySet(d);
 
-        const completedSessionId = getCompletedSessionId(d.id);
-        if (completedSessionId) {
+        const showResults = async (completedSessionId: string) => {
+          const res = await fetchJson<SessionResults>(`/api/sessions/${completedSessionId}/results`);
+          setSessionId(completedSessionId);
+          setResults(res);
+          setReturning(true);
+          setPhase("results");
+          markSessionCompleted(d.id, completedSessionId);
+          track("Returning Player Viewed Results", { dayNumber: d.dayNumber });
+          // No-op if signed out or already linked — see the route for why
+          // this is safer than guessing which session is "theirs" from
+          // timing.
+          fetchJson(`/api/sessions/${completedSessionId}/link`, { method: "POST" }).catch(() => {});
+        };
+
+        const localCompletedId = getCompletedSessionId(d.id);
+        if (localCompletedId) {
           try {
-            const res = await fetchJson<SessionResults>(`/api/sessions/${completedSessionId}/results`);
-            setSessionId(completedSessionId);
-            setResults(res);
-            setReturning(true);
-            setPhase("results");
-            track("Returning Player Viewed Results", { dayNumber: d.dayNumber });
-            // No-op if signed out or already linked — see the route for why
-            // this is safer than guessing which session is "theirs" from
-            // timing.
-            fetchJson(`/api/sessions/${completedSessionId}/link`, { method: "POST" }).catch(() => {});
+            await showResults(localCompletedId);
             return;
           } catch {
             // Stale/invalid local record (e.g. content was reseeded) — fall
-            // through to a normal fresh play-through.
+            // through to check the server before giving up on it entirely.
             clearCompletedSession(d.id);
           }
+        }
+
+        // localStorage doesn't know about it on this browser/device, but
+        // the identity (signed-in account, or this device's anon cookie)
+        // might already have finished it elsewhere — skip straight to
+        // results instead of making the player click "Begin" only to be
+        // told they already played.
+        try {
+          const { sessionId: serverCompletedId } = await fetchJson<{ sessionId: string | null }>(
+            `/api/sessions/completed?dailySetId=${d.id}`
+          );
+          if (serverCompletedId) {
+            await showResults(serverCompletedId);
+            return;
+          }
+        } catch {
+          // Non-fatal — just means we can't tell yet; fall through to intro.
         }
 
         setPhase("intro");

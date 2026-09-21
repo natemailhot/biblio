@@ -34,7 +34,11 @@ export default function ArchivePage() {
       .catch(() => {});
   }, []);
 
-  const playedCount = days?.filter((d) => playedIds.has(d.dailySetId)).length ?? 0;
+  // A day counts as played if this browser remembers it locally, OR the
+  // server has a scored result for it (signed-in account, any device) —
+  // the latter is what keeps a fresh device from under-counting.
+  const isPlayed = (d: ArchiveDay) => playedIds.has(d.dailySetId) || scoreByDay.has(d.dayNumber);
+  const playedCount = days?.filter(isPlayed).length ?? 0;
   const totalCount = days?.length ?? 0;
   const pct = totalCount > 0 ? Math.round((playedCount / totalCount) * 100) : 0;
 
@@ -57,7 +61,7 @@ export default function ArchivePage() {
       {days && (
         <ul className="flex flex-col gap-1.5">
           {days.map((d) => {
-            const played = playedIds.has(d.dailySetId);
+            const played = isPlayed(d);
             const score = scoreByDay.get(d.dayNumber);
             return (
               <li key={d.dailySetId}>

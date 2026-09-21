@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { fetchJson } from "@/lib/fetchJson";
 import { getCompletedSessionId } from "@/lib/completedSessions";
-import type { AccountMeResponse, LeaderboardResponse } from "@/lib/types";
+import type { AccountMeResponse, LeaderboardResponse, PlayerStats } from "@/lib/types";
 
 type ArchiveDay = { dailySetId: string; dayNumber: number; date: string };
 
@@ -21,15 +21,32 @@ export function MenuButton() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const refresh = () => {
-    fetchJson<{ days: ArchiveDay[] }>("/api/archive")
+    const daysPromise = fetchJson<{ days: ArchiveDay[] }>("/api/archive")
       .then((res) => {
         setDays(res.days);
-        setPlayedCount(res.days.filter((d) => getCompletedSessionId(d.dailySetId)).length);
+        return res.days;
       })
-      .catch(() => {});
+      .catch(() => null);
+
     fetchJson<AccountMeResponse>("/api/account/me")
-      .then(setMe)
+      .then(async (res) => {
+        setMe(res);
+        const days = await daysPromise;
+        if (!days) return;
+
+        if (res.signedIn && res.hasProfile) {
+          // Authoritative server-side count — a device that's never played
+          // a given day locally (a new browser, a phone vs. desktop) would
+          // otherwise under-count based on localStorage alone.
+          const stats = await fetchJson<PlayerStats>("/api/stats");
+          const playedDayNumbers = new Set(stats.history.map((h) => h.dayNumber));
+          setPlayedCount(days.filter((d) => playedDayNumbers.has(d.dayNumber)).length);
+        } else {
+          setPlayedCount(days.filter((d) => getCompletedSessionId(d.dailySetId)).length);
+        }
+      })
       .catch(() => setMe({ signedIn: false }));
+
     fetchJson<LeaderboardResponse>("/api/leaderboard?range=today")
       .then(setLeaderboard)
       .catch(() => {});
