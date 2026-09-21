@@ -24,11 +24,26 @@ export function osaDistance(a: string, b: string): number {
   return d[a.length][b.length];
 }
 
+// How many edits a guess is allowed to be from a candidate and still count
+// as "the same word, typo'd" rather than "a different word that happens to
+// be close." Stepped by candidate length rather than a flat percentage —
+// a length-proportional threshold (the original approach: ~30% of length)
+// let short candidates absorb 2 edits, which is enough to turn one real
+// name into a completely different one ("Jonah" -> "Judah", "Mark" ->
+// "Barak" were both real false-positive suggestions at that threshold).
+// Real single-character typos dominate in practice, so short/medium
+// answers only tolerate 1; length has to clear real thresholds before a
+// second (or third) edit is allowed.
+export function fuzzyThreshold(candidateLength: number): number {
+  if (candidateLength < 8) return 1;
+  if (candidateLength < 14) return 2;
+  return 3;
+}
+
 // Suggests a "did you mean X?" answer when a guess is close-but-not-exact —
 // never used to silently accept a weak match. Only proposes a suggestion
-// when there's a single unambiguous closest candidate within a length-
-// proportional edit-distance threshold (min 1, ~30% of the candidate's
-// length), so short answers still require near-exact typing.
+// when there's a single unambiguous closest candidate within the
+// length-stepped edit-distance threshold above.
 export function findFuzzySuggestion(
   normalizedInput: string,
   answers: ChallengeAnswer[]
@@ -39,12 +54,18 @@ export function findFuzzySuggestion(
   let tie = false;
 
   for (const answer of answers) {
+    // A curated list of guesses that look close but are actually a
+    // different (usually related but wrong) answer — e.g. "Abraham" is
+    // excluded from "The Abrahamic Covenant" so naming the person doesn't
+    // get offered as "did you mean the covenant?"
+    if (answer.exclusions.some((e) => normalizeAnswer(e) === normalizedInput)) continue;
+
     const candidates = [answer.normalizedAnswer, ...answer.aliases.map(normalizeAnswer)];
     for (const candidate of candidates) {
       if (!candidate) continue;
       const distance = osaDistance(normalizedInput, candidate);
       if (distance === 0) continue; // exact matches are handled elsewhere
-      const threshold = Math.max(1, Math.round(candidate.length * 0.3));
+      const threshold = fuzzyThreshold(candidate.length);
       if (distance > threshold) continue;
 
       if (!best || distance < best.distance) {
@@ -72,8 +93,7 @@ export function isCloseTypo(normalizedInput: string, candidates: string[]): bool
     if (!normalizedCandidate) continue;
     const distance = osaDistance(normalizedInput, normalizedCandidate);
     if (distance === 0) continue; // exact matches are handled elsewhere
-    const threshold = Math.max(1, Math.round(normalizedCandidate.length * 0.3));
-    if (distance <= threshold) return true;
+    if (distance <= fuzzyThreshold(normalizedCandidate.length)) return true;
   }
   return false;
 }

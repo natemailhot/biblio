@@ -15,6 +15,11 @@ export type SeedAnswer = {
   references: SeedReference[];
   explanation: string;
   inclusionNotes?: string;
+  // Guesses that look close (lexically or semantically) to this answer but
+  // are actually wrong — excluded from the fuzzy/semantic "did you mean?"
+  // suggestion so a related-but-incorrect guess isn't offered as if it
+  // were a near-miss of this specific answer.
+  exclusions?: string[];
   // Content from the 7 deuterocanonical/Catholic-canon books, accepted as a
   // valid live answer but grouped separately in the post-round review so
   // the question itself stays framed within the default 66-book canon.

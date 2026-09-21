@@ -1,4 +1,5 @@
 import { embed, embedMany, cosineSimilarity } from "ai";
+import { normalizeAnswer } from "./normalize";
 import type { ChallengeAnswer } from "@/lib/types";
 
 // Fast free-tier model (~300-450ms per call) that we've verified gives the
@@ -44,9 +45,14 @@ export async function findSemanticSuggestion(
   rawInput: string,
   answers: ChallengeAnswer[]
 ): Promise<string | null> {
+  const normalizedInput = normalizeAnswer(rawInput);
   const candidates = answers.filter(
     (a): a is ChallengeAnswer & { embedding: number[] } =>
-      Array.isArray((a as { embedding?: unknown }).embedding)
+      Array.isArray((a as { embedding?: unknown }).embedding) &&
+      // Curated exclusions (e.g. "Abraham" for "The Abrahamic Covenant")
+      // keep a lexically/semantically related-but-wrong guess from being
+      // offered as a suggestion for this answer, even at high similarity.
+      !a.exclusions.some((e) => normalizeAnswer(e) === normalizedInput)
   );
   if (candidates.length < 1) return null;
 
