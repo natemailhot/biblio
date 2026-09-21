@@ -7,10 +7,11 @@ import { getCompletedSessionId, markSessionCompleted, clearCompletedSession } fr
 import { IntroScreen } from "./IntroScreen";
 import { AscentScreen } from "./AscentScreen";
 import { BonusScreen } from "./BonusScreen";
+import { BonusRoundScreen } from "./BonusRoundScreen";
 import { ResultsScreen } from "./ResultsScreen";
-import type { DailySetSummary, SessionResults } from "@/lib/types";
+import type { BonusRoundStatus, DailySetSummary, SessionResults } from "@/lib/types";
 
-type Phase = "loading" | "intro" | "ascent" | "bonus" | "results" | "error";
+type Phase = "loading" | "intro" | "ascent" | "bonus" | "bonusRound" | "results" | "error";
 
 // `date` lets the archive page replay a past day through the exact same
 // flow as today's game — omit it (the normal path) to use the player's
@@ -22,6 +23,42 @@ export function GameApp({ date }: { date?: string } = {}) {
   const [results, setResults] = useState<SessionResults | null>(null);
   const [returning, setReturning] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [resumedBonusStatus, setResumedBonusStatus] = useState<BonusRoundStatus | undefined>(undefined);
+
+  // Shared by the "returning player" paths below: a completed main round
+  // doesn't necessarily mean the bonus round is settled too — a refresh or
+  // tab close mid-round shouldn't just forfeit it, so resume it instead of
+  // skipping straight to results whenever it's still within its 5 minutes.
+  const revealOrResumeBonusRound = async (
+    dailySetId: string,
+    completedSessionId: string
+  ): Promise<"results" | "bonusRound"> => {
+    setSessionId(completedSessionId);
+    try {
+      const bonusStatus = await fetchJson<BonusRoundStatus>(`/api/sessions/${completedSessionId}/bonus-round`);
+      if (bonusStatus.active && bonusStatus.endsAt && new Date(bonusStatus.endsAt).getTime() > Date.now()) {
+        setResumedBonusStatus(bonusStatus);
+        setPhase("bonusRound");
+        return "bonusRound";
+      }
+      if (bonusStatus.active) {
+        // Started but the clock ran out while away — lock it in silently.
+        await fetchJson(`/api/sessions/${completedSessionId}/bonus-round/finish`, { method: "POST" }).catch(() => {});
+      }
+    } catch {
+      // Non-fatal — just means we can't tell yet; fall through to results.
+    }
+
+    const res = await fetchJson<SessionResults>(`/api/sessions/${completedSessionId}/results`);
+    setResults(res);
+    setReturning(true);
+    setPhase("results");
+    markSessionCompleted(dailySetId, completedSessionId);
+    // No-op if signed out or already linked — see the route for why this
+    // is safer than guessing which session is "theirs" from timing.
+    fetchJson(`/api/sessions/${completedSessionId}/link`, { method: "POST" }).catch(() => {});
+    return "results";
+  };
 
   useEffect(() => {
     // en-CA formats as YYYY-MM-DD; omitting timeZone uses the browser's
@@ -32,17 +69,8 @@ export function GameApp({ date }: { date?: string } = {}) {
         setDailySet(d);
 
         const showResults = async (completedSessionId: string) => {
-          const res = await fetchJson<SessionResults>(`/api/sessions/${completedSessionId}/results`);
-          setSessionId(completedSessionId);
-          setResults(res);
-          setReturning(true);
-          setPhase("results");
-          markSessionCompleted(d.id, completedSessionId);
-          track("Returning Player Viewed Results", { dayNumber: d.dayNumber });
-          // No-op if signed out or already linked — see the route for why
-          // this is safer than guessing which session is "theirs" from
-          // timing.
-          fetchJson(`/api/sessions/${completedSessionId}/link`, { method: "POST" }).catch(() => {});
+          const outcome = await revealOrResumeBonusRound(d.id, completedSessionId);
+          if (outcome === "results") track("Returning Player Viewed Results", { dayNumber: d.dayNumber });
         };
 
         const localCompletedId = getCompletedSessionId(d.id);
@@ -97,12 +125,9 @@ export function GameApp({ date }: { date?: string } = {}) {
       if (res.alreadyCompleted) {
         // This identity (account or anon device) already finished today,
         // just not on this browser's localStorage — go straight to
-        // results instead of starting a round the server would reject.
-        const results = await fetchJson<SessionResults>(`/api/sessions/${res.sessionId}/results`);
-        setResults(results);
-        markSessionCompleted(dailySet.id, res.sessionId);
-        setReturning(true);
-        setPhase("results");
+        // results (or resume an in-progress bonus round) instead of
+        // starting a round the server would reject.
+        await revealOrResumeBonusRound(dailySet.id, res.sessionId);
         return;
       }
 
@@ -119,7 +144,14 @@ export function GameApp({ date }: { date?: string } = {}) {
     if (dailySet) track("Ascent Completed", { dayNumber: dailySet.dayNumber });
   };
 
-  const handleBonusDone = async () => {
+  const handleBonusDone = () => {
+    // Offer the optional bonus round before revealing anything — once
+    // results are shown, it's too late to play it.
+    setResumedBonusStatus(undefined);
+    setPhase("bonusRound");
+  };
+
+  const handleBonusRoundDone = async () => {
     if (!sessionId || !dailySet) return;
     try {
       const res = await fetchJson<SessionResults>(`/api/sessions/${sessionId}/results`);
@@ -162,6 +194,17 @@ export function GameApp({ date }: { date?: string } = {}) {
 
   if (phase === "bonus" && dailySet && sessionId) {
     return <BonusScreen dailySet={dailySet} sessionId={sessionId} onDone={handleBonusDone} />;
+  }
+
+  if (phase === "bonusRound" && dailySet && sessionId) {
+    return (
+      <BonusRoundScreen
+        dailySet={dailySet}
+        sessionId={sessionId}
+        resumedStatus={resumedBonusStatus}
+        onDone={handleBonusRoundDone}
+      />
+    );
   }
 
   if (phase === "results" && results) {

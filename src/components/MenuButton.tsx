@@ -138,6 +138,13 @@ export function MenuButton() {
               >
                 See full leaderboard →
               </Link>
+              <Link
+                href="/bonus-leaderboard"
+                onClick={() => setOpen(false)}
+                className="mt-1 block text-sm font-medium text-indigo underline decoration-gold-soft underline-offset-4"
+              >
+                Bonus Round leaderboard →
+              </Link>
 
               {me && !me.signedIn ? (
                 <p className="mt-2 text-sm text-stone-dark">Log in or create an account to join the leaderboard.</p>

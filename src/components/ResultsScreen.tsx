@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { track } from "@vercel/analytics";
 import { BRAND_EMOJI, MISS_EMOJI, TIER_META } from "@/lib/content/tiers";
 import { BONUS_LEVEL_LABELS } from "@/lib/content/scriptureBonusScoring";
 import { fetchJson } from "@/lib/fetchJson";
 import { TierBadge } from "./TierBadge";
-import type { QuestionResult, RankedAnswer, SessionResults } from "@/lib/types";
+import type { BonusRoundStatus, QuestionResult, RankedAnswer, SessionResults } from "@/lib/types";
 
 function AnswerRow({ a }: { a: RankedAnswer }) {
   const [open, setOpen] = useState(false);
@@ -133,6 +134,15 @@ export function ResultsScreen({
   const [reportSubmitting, setReportSubmitting] = useState(false);
   const [reportSent, setReportSent] = useState(false);
   const [reportError, setReportError] = useState<string | null>(null);
+  const [bonusRound, setBonusRound] = useState<BonusRoundStatus | null>(null);
+  const [bonusCopied, setBonusCopied] = useState(false);
+
+  useEffect(() => {
+    if (!sessionId) return;
+    fetchJson<BonusRoundStatus>(`/api/sessions/${sessionId}/bonus-round`)
+      .then((s) => setBonusRound(s.completedAt ? s : null))
+      .catch(() => {});
+  }, [sessionId]);
 
   const grid = results.questionResults
     .map((q) => (q.result === "accepted" && q.tier ? TIER_META[q.tier].shareEmoji : MISS_EMOJI))
@@ -167,6 +177,33 @@ export function ResultsScreen({
       track("Result Shared", { dayNumber: results.dayNumber, method: "clipboard" });
     } catch {
       // clipboard may be unavailable; the card text is still visible below
+    }
+  };
+
+  const bonusShareCard = [
+    `Ascend #${results.dayNumber} ${BRAND_EMOJI} · Bonus Round`,
+    `${bonusRound?.finalScore ?? 0}`,
+    "",
+    "dailyascend.io",
+  ].join("\n");
+
+  const handleShareBonus = async () => {
+    if (typeof navigator.share === "function") {
+      try {
+        await navigator.share({ text: bonusShareCard });
+        track("Bonus Round Shared", { dayNumber: results.dayNumber, method: "native" });
+        return;
+      } catch {
+        // fall through to clipboard
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(bonusShareCard);
+      setBonusCopied(true);
+      setTimeout(() => setBonusCopied(false), 2500);
+      track("Bonus Round Shared", { dayNumber: results.dayNumber, method: "clipboard" });
+    } catch {
+      // clipboard may be unavailable
     }
   };
 
@@ -256,6 +293,33 @@ export function ResultsScreen({
         <p className="mt-2 text-sm text-stone-dark">{results.scriptureBonus.contextNote}</p>
         <p className="mt-1 text-xs text-stone">{results.scriptureBonus.translation}</p>
       </div>
+
+      {bonusRound && (
+        <div className="rounded-2xl border border-gold-soft bg-white/60 p-5">
+          <p className="font-serif-heading text-sm uppercase tracking-[0.2em] text-gold">Bonus Round</p>
+          <div className="mt-2 flex items-center justify-between">
+            <div>
+              <p className="font-serif-heading text-3xl font-semibold text-ink">{bonusRound.finalScore}</p>
+              <p className="text-sm text-stone-dark">
+                Separate from your Ascend score —{" "}
+                <Link
+                  href="/bonus-leaderboard"
+                  className="text-indigo underline decoration-gold-soft underline-offset-4"
+                >
+                  see the bonus leaderboard
+                </Link>
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleShareBonus}
+              className="rounded-full border-2 border-indigo px-4 py-2 text-sm font-medium text-indigo transition-colors hover:bg-indigo hover:text-parchment"
+            >
+              {bonusCopied ? "Copied" : "Share"}
+            </button>
+          </div>
+        </div>
+      )}
 
       <button
         type="button"

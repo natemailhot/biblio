@@ -208,3 +208,48 @@ export type LeaderboardResponse = {
   entries: LeaderboardEntry[];
   histogram: ScoreHistogramBucket[];
 };
+
+// One of the 5 questions as seen inside the optional bonus round: whether
+// it was already answered correctly in the main round (locked, contributes
+// to the starting baseline) or is still open to attempt. Prompt/whatCounts
+// aren't repeated here — the client already has them from DailySetSummary
+// and merges by challengeId.
+export type BonusRoundQuestionState = {
+  challengeId: string;
+  slot: number;
+  locked: boolean;
+  score: number | null;
+  canonicalAnswer: string | null;
+  tier: AnswerTier | null;
+};
+
+export type BonusRoundStatus = {
+  active: boolean;
+  baselineScore: number;
+  currentScore: number;
+  endsAt: string | null;
+  completedAt: string | null;
+  finalScore: number | null;
+  questions: BonusRoundQuestionState[];
+};
+
+export type SubmitBonusRoundAnswerResponse = {
+  result: SubmittedAnswerResult;
+  score: number;
+  canonicalAnswer?: string;
+  tier?: AnswerTier;
+  message: string;
+  suggestion?: string;
+  currentScore: number;
+};
+
+export type BonusLeaderboardEntry = {
+  username: string;
+  score: number;
+};
+
+export type BonusLeaderboardResponse = {
+  range: LeaderboardRange;
+  entries: BonusLeaderboardEntry[];
+  histogram: ScoreHistogramBucket[];
+};
