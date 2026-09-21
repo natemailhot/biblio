@@ -97,10 +97,18 @@ export function AccountButton() {
   const initial = me.signedIn && me.hasProfile ? me.username.charAt(0).toUpperCase() : null;
 
   return (
-    <div ref={containerRef} className="fixed top-4 right-4 z-20">
+    <div ref={containerRef} className="fixed bottom-4 right-4 z-20 sm:bottom-auto sm:top-4">
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => {
+          // Refetch on open, not just on mount — the popover can otherwise
+          // go stale (e.g. finishing today's game bumps the day streak
+          // after the page already loaded, and the popover would keep
+          // showing the pre-game numbers until something else refreshed
+          // it).
+          if (!open) refresh();
+          setOpen((o) => !o);
+        }}
         aria-expanded={open}
         aria-label="Account"
         className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-gold-soft bg-white/90 text-lg font-semibold text-indigo shadow-md transition-colors hover:border-indigo"
@@ -109,7 +117,7 @@ export function AccountButton() {
       </button>
 
       {open && (
-        <div className="animate-rise-in absolute top-14 right-0 w-80 max-w-[calc(100vw-2rem)]">
+        <div className="animate-rise-in absolute bottom-14 right-0 w-80 max-w-[calc(100vw-2rem)] sm:bottom-auto sm:top-14">
           <AccountPanel
             me={me}
             stats={stats}
