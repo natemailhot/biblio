@@ -14,6 +14,8 @@ export function AccountPanel({
   onUsernameChange,
   submitting,
   error,
+  renaming,
+  onStartRename,
   onSignIn,
   onSignOut,
   onClaimUsername,
@@ -24,6 +26,8 @@ export function AccountPanel({
   onUsernameChange: (value: string) => void;
   submitting: boolean;
   error: string | null;
+  renaming: boolean;
+  onStartRename: () => void;
   onSignIn: () => void;
   onSignOut: () => void;
   onClaimUsername: () => void;
@@ -77,11 +81,48 @@ export function AccountPanel({
         </>
       )}
 
-      {me.signedIn && me.hasProfile && (
+      {me.signedIn && me.hasProfile && renaming && (
+        <>
+          <p className="mt-2 text-sm text-stone-dark">Choose a new username.</p>
+          <div className="mt-3 flex gap-2">
+            <label htmlFor="account-username-rename" className="sr-only">
+              New username
+            </label>
+            <input
+              id="account-username-rename"
+              type="text"
+              autoFocus
+              value={username}
+              onChange={(e) => onUsernameChange(e.target.value)}
+              placeholder="3-20 letters, numbers, _"
+              maxLength={20}
+              className="min-h-[2.75rem] flex-1 rounded-xl border border-stone/40 bg-white px-3 text-ink focus:border-indigo"
+            />
+            <button
+              type="button"
+              onClick={onClaimUsername}
+              disabled={submitting || !username.trim()}
+              className="rounded-xl bg-indigo px-4 font-medium text-parchment disabled:opacity-50"
+            >
+              Save
+            </button>
+          </div>
+          {error && <p className="mt-2 text-sm text-indigo-dim">{error}</p>}
+        </>
+      )}
+
+      {me.signedIn && me.hasProfile && !renaming && (
         <>
           <div className="mt-2 flex items-center justify-between">
             <p className="text-ink">
-              Signed in as <span className="font-medium">{me.username}</span>
+              Signed in as <span className="font-medium">{me.username}</span>{" "}
+              <button
+                type="button"
+                onClick={onStartRename}
+                className="text-xs text-indigo underline decoration-gold-soft underline-offset-4"
+              >
+                Change
+              </button>
             </p>
             <button type="button" onClick={onSignOut} className="text-sm text-stone-dark underline decoration-gold-soft underline-offset-4">
               Sign out

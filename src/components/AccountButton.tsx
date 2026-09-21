@@ -16,6 +16,7 @@ export function AccountButton() {
   const [username, setUsername] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [renaming, setRenaming] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const refresh = async () => {
@@ -103,12 +104,19 @@ export function AccountButton() {
     try {
       await fetchJson("/api/account/username", { method: "POST", body: JSON.stringify({ username: username.trim() }) });
       setUsername("");
+      setRenaming(false);
       await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save username.");
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleStartRename = () => {
+    if (me?.signedIn && me.hasProfile) setUsername(me.username);
+    setError(null);
+    setRenaming(true);
   };
 
   if (!me) return null;
@@ -144,6 +152,8 @@ export function AccountButton() {
             onUsernameChange={setUsername}
             submitting={submitting}
             error={error}
+            renaming={renaming}
+            onStartRename={handleStartRename}
             onSignIn={handleSignIn}
             onSignOut={handleSignOut}
             onClaimUsername={handleClaimUsername}
