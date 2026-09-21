@@ -4,8 +4,10 @@ import { bucketScores } from "@/lib/content/scoreBuckets";
 
 const LIMIT = 50;
 
-// Public — no auth required to view (only to appear on it, since a row
-// only exists here if the session that earned it had a signed-in user_id).
+// The ranked list only shows signed-in players (a row needs a username to
+// display). The score-distribution histogram is different: it should
+// reflect everyone who played, signed in or not, so it's not filtered by
+// user_id — an anonymous player's score is still a real score.
 export async function GET(req: NextRequest) {
   const range = req.nextUrl.searchParams.get("range") ?? "today";
   if (!["today", "week", "all"].includes(range)) {
@@ -22,15 +24,15 @@ export async function GET(req: NextRequest) {
 
   let query = supabase
     .from("game_sessions")
-    .select("user_id, total_score, scripture_bonus_multiplier, daily_set_id, daily_sets!inner(day_number)")
+    .select("user_id, anon_id, total_score, scripture_bonus_multiplier, daily_set_id, daily_sets!inner(day_number)")
     .not("completed_at", "is", null)
-    .not("user_id", "is", null)
     .order("total_score", { ascending: false })
-    // Fetched well above LIMIT because a user can rack up more than one
-    // completed session for the same window (replays, an anonymous play
-    // later linked to their account, another device); dedupe to each
-    // user's single best score below, then take the top LIMIT of that.
-    .limit(LIMIT * 10);
+    // Fetched well above LIMIT because an identity can have more than one
+    // completed session across a multi-day window (that's expected — one
+    // per day) and, historically, more than one for the same day (an
+    // anonymous play later linked to an account, another device); dedupe
+    // per identity per day below, then take the top LIMIT of that.
+    .limit(LIMIT * 20);
 
   if (range === "today" && today?.day_number != null) {
     query = query.eq("daily_sets.day_number", today.day_number);
@@ -43,6 +45,22 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Could not load leaderboard" }, { status: 500 });
   }
 
+  // Histogram: every completed session counts, signed in or not. Dedupe by
+  // identity (user_id, else anon_id, else the row itself) so a single
+  // player's best score for the window is counted once, not once per
+  // session.
+  const bestByIdentity = new Map<string, number>();
+  for (const r of rows ?? []) {
+    const dailySet = r.daily_sets as unknown as { day_number: number } | null;
+    const identity = r.user_id ?? (r.anon_id ? `anon:${r.anon_id}:${dailySet?.day_number ?? "all"}` : `session:${Math.random()}`);
+    const existing = bestByIdentity.get(identity);
+    if (existing === undefined || r.total_score > existing) {
+      bestByIdentity.set(identity, r.total_score);
+    }
+  }
+  const histogram = bucketScores([...bestByIdentity.values()]);
+
+  // Ranked list: signed-in only.
   const userIds = [...new Set((rows ?? []).map((r) => r.user_id).filter((id): id is string => !!id))];
   const { data: profiles } = await supabase.from("profiles").select("id, username").in("id", userIds);
   const usernameById = new Map((profiles ?? []).map((p) => [p.id, p.username]));
@@ -55,8 +73,6 @@ export async function GET(req: NextRequest) {
       bestByUser.set(r.user_id, { score: r.total_score, multiplier: r.scripture_bonus_multiplier });
     }
   }
-
-  const histogram = bucketScores([...bestByUser.values()].map((v) => v.score));
 
   const entries = [...bestByUser.entries()]
     .map(([userId, best]) => ({
