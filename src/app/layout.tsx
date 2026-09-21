@@ -3,6 +3,7 @@ import { Fraunces, Inter } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { CloudLayer } from "@/components/CloudLayer";
 import { AccountButton } from "@/components/AccountButton";
+import { MenuButton } from "@/components/MenuButton";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col bg-parchment text-ink">
         <CloudLayer />
+        <MenuButton />
         <AccountButton />
         <div className="relative z-10 flex min-h-full flex-1 flex-col">{children}</div>
         <Analytics />

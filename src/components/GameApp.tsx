@@ -12,7 +12,10 @@ import type { DailySetSummary, SessionResults } from "@/lib/types";
 
 type Phase = "loading" | "intro" | "ascent" | "bonus" | "results" | "error";
 
-export function GameApp() {
+// `date` lets the archive page replay a past day through the exact same
+// flow as today's game — omit it (the normal path) to use the player's
+// own local calendar date.
+export function GameApp({ date }: { date?: string } = {}) {
   const [phase, setPhase] = useState<Phase>("loading");
   const [dailySet, setDailySet] = useState<DailySetSummary | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -23,8 +26,8 @@ export function GameApp() {
   useEffect(() => {
     // en-CA formats as YYYY-MM-DD; omitting timeZone uses the browser's
     // own local timezone, so the day rolls over at each player's midnight.
-    const localDate = new Date().toLocaleDateString("en-CA");
-    fetchJson<DailySetSummary>(`/api/daily-set?date=${localDate}`)
+    const targetDate = date ?? new Date().toLocaleDateString("en-CA");
+    fetchJson<DailySetSummary>(`/api/daily-set?date=${targetDate}`)
       .then(async (d) => {
         setDailySet(d);
 
@@ -55,6 +58,9 @@ export function GameApp() {
         setErrorMessage(err instanceof Error ? err.message : "Could not load today's Ascend.");
         setPhase("error");
       });
+    // `date` is effectively fixed per mount: /day/[date] remounts this
+    // component on route change, and the root page never passes it at all.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleBegin = async () => {
