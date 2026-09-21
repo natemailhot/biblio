@@ -275,6 +275,22 @@ export const DAY_04: SeedDay = {
         "Any precious stone explicitly named in the biblical text, such as the high priest's breastplate in Exodus 28 or the foundations of the New Jerusalem in Revelation 21.",
       answers: [
         {
+          canonical: "Carbuncle",
+          aliases: ["garnet"],
+          score: 85,
+          tier: "holy-of-holies",
+          references: [{ book: "Exodus", chapterStart: 28, verseStart: 17, display: "Exodus 28:17" }],
+          explanation: "Carbuncle is the third stone in the first row of the high priest's breastplate, alongside sardius and topaz.",
+        },
+        {
+          canonical: "Coral",
+          aliases: [],
+          score: 60,
+          tier: "veil",
+          references: [{ book: "Job", chapterStart: 28, verseStart: 18, display: "Job 28:18" }],
+          explanation: "Job groups coral with pearls as precious things whose price is far below the value of wisdom.",
+        },
+        {
           canonical: "Jasper",
           aliases: [],
           score: 10,
@@ -404,11 +420,19 @@ export const DAY_04: SeedDay = {
       answers: [
         {
           canonical: "Fire from Heaven on Mount Carmel",
-          aliases: ["fire on carmel", "carmel"],
+          aliases: ["fire on carmel", "carmel", "wet altar", "the wet altar", "water on the altar"],
           score: 10,
           tier: "outer-court",
           references: [{ book: "1 Kings", chapterStart: 18, verseStart: 38, display: "1 Kings 18:38" }],
           explanation: "Fire falls from heaven and consumes Elijah's sacrifice before the prophets of Baal.",
+        },
+        {
+          canonical: "Ravens Feed Elijah",
+          aliases: ["ravens", "fed by ravens", "elijah fed by ravens"],
+          score: 20,
+          tier: "bronze-altar",
+          references: [{ book: "1 Kings", chapterStart: 17, verseStart: 2, verseEnd: 6, display: "1 Kings 17:2-6" }],
+          explanation: "Ravens bring Elijah bread and meat morning and evening while he hides by the brook Cherith.",
         },
         {
           canonical: "Healing Naaman's Leprosy",
