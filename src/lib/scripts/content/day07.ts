@@ -174,6 +174,16 @@ export const DAY_07: SeedDay = {
           references: [{ book: "2 Kings", chapterStart: 24, verseStart: 8, display: "2 Kings 24:8" }],
           explanation: "Nehushta is named as the queen mother of King Jehoiachin.",
         },
+        {
+          canonical: "Cleopatra",
+          aliases: ["cleopatra thea"],
+          score: 85,
+          tier: "holy-of-holies",
+          references: [{ book: "1 Maccabees", chapterStart: 10, verseStart: 57, verseEnd: 58, display: "1 Maccabees 10:57-58" }],
+          explanation: "Cleopatra, daughter of Ptolemy VI of Egypt, is given in marriage to King Alexander Balas and later becomes queen to Demetrius II.",
+          inclusionNotes: "Not to be confused with the later, more famous Cleopatra VII of Rome/Egypt fame — this is Cleopatra Thea, a Ptolemaic princess who became queen through two successive royal marriages.",
+          catholicOnly: true,
+        },
       ],
     },
     {
