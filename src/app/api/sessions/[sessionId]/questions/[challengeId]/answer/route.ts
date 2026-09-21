@@ -37,7 +37,7 @@ export async function POST(
 
   const { data: challenge, error: challengeError } = await supabase
     .from("daily_challenges")
-    .select("id, daily_set_id, slot, duration_seconds, answer_set_version, daily_gem_answer_id")
+    .select("id, daily_set_id, slot, duration_seconds, answer_set_version")
     .eq("id", challengeId)
     .single();
 
@@ -163,7 +163,10 @@ export async function POST(
     canonical_answer: response.result === "accepted" ? response.canonicalAnswer : null,
     explanation: matchedExplanation,
     references: matchedReferences,
-    is_daily_gem: matchedAnswerId !== null && matchedAnswerId === challenge.daily_gem_answer_id,
+    // "Daily Gem" is any answer scoring 100 — a question may have zero, one,
+    // or a couple, depending on whether it genuinely has a standout
+    // rarest/most-surprising answer.
+    is_daily_gem: matchedAnswerId !== null && response.score === 100,
   });
 
   if (insertError) {

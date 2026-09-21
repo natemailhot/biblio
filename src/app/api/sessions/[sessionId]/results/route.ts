@@ -38,7 +38,7 @@ export async function GET(
   const [{ data: questions }, { data: submitted }, { data: bonusRow }] = await Promise.all([
     supabase
       .from("daily_challenges")
-      .select("id, slot, prompt, answer_set_version, daily_gem_answer_id")
+      .select("id, slot, prompt, answer_set_version")
       .eq("daily_set_id", session.daily_set_id)
       .order("slot", { ascending: true }),
     supabase

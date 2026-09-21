@@ -88,8 +88,6 @@ async function seedDay(day: SeedDay) {
       throw challengeError ?? new Error(`Failed to insert question for slot ${question.slot}`);
     }
 
-    let dailyGemAnswerId: string | null = null;
-
     for (const answer of question.answers) {
       const { data: row, error } = await supabase
         .from("challenge_answers")
@@ -110,13 +108,7 @@ async function seedDay(day: SeedDay) {
         .single();
 
       if (error || !row) throw error ?? new Error(`Failed to insert answer ${answer.canonical}`);
-      if (answer.score === 100) dailyGemAnswerId = row.id;
     }
-
-    await supabase
-      .from("daily_challenges")
-      .update({ daily_gem_answer_id: dailyGemAnswerId })
-      .eq("id", challenge.id);
   }
 
   console.log(

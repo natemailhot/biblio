@@ -2,11 +2,13 @@ import type { AnswerTier } from "@/lib/types";
 
 // Six fixed-point ascent stages, following the tabernacle's own path toward
 // God's presence and closing with Paul's "third heaven" (2 Corinthians
-// 12:2). Exactly one answer per question sits at Third Heaven / 100 points
-// (the Daily Gem) — enforced by a DB constraint, not just convention. Icon +
-// label carry the meaning in-app so tier distinctions never rely on color
-// alone; `shareEmoji` is the distinct symbol used in the spoiler-free share
-// grid (one tile per question).
+// 12:2). Third Heaven / 100 points (the Daily Gem) is an editorial judgment
+// call per question, not a forced slot — a question may have zero, one, or
+// a couple of answers that genuinely earn it, depending on whether anything
+// stands out as the rarest/most-surprising correct answer. Icon + label
+// carry the meaning in-app so tier distinctions never rely on color alone;
+// `shareEmoji` is the distinct symbol used in the spoiler-free share grid
+// (one tile per question).
 export const TIER_META: Record<
   AnswerTier,
   { label: string; points: number; icon: string; shareEmoji: string; description: string; colorClass: string }
