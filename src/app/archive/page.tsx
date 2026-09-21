@@ -9,6 +9,7 @@ import type { AccountMeResponse, PlayerStats } from "@/lib/types";
 
 type ArchiveDay = { dailySetId: string; dayNumber: number; date: string };
 type Filter = "all" | "played" | "unplayed";
+type View = "list" | "calendar";
 
 const FILTERS: { key: Filter; label: string }[] = [
   { key: "all", label: "All" },
@@ -20,7 +21,10 @@ export default function ArchivePage() {
   const [days, setDays] = useState<ArchiveDay[] | null>(null);
   const [scoreByDay, setScoreByDay] = useState<Map<number, number>>(new Map());
   const [playedIds, setPlayedIds] = useState<Set<string>>(new Set());
+  const [stats, setStats] = useState<PlayerStats | null>(null);
+  const [signedIn, setSignedIn] = useState(false);
   const [filter, setFilter] = useState<Filter>("all");
+  const [view, setView] = useState<View>("list");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -33,9 +37,11 @@ export default function ArchivePage() {
 
     fetchJson<AccountMeResponse>("/api/account/me")
       .then((me) => {
+        setSignedIn(me.signedIn);
         if (me.signedIn && me.hasProfile) {
-          return fetchJson<PlayerStats>("/api/stats").then((stats) => {
-            setScoreByDay(new Map(stats.history.map((h) => [h.dayNumber, h.score])));
+          return fetchJson<PlayerStats>("/api/stats").then((s) => {
+            setStats(s);
+            setScoreByDay(new Map(s.history.map((h) => [h.dayNumber, h.score])));
           });
         }
       })
@@ -71,27 +77,96 @@ export default function ArchivePage() {
         )}
       </div>
 
-      <div className="grid grid-cols-3 gap-1.5">
-        {FILTERS.map((f) => (
-          <button
-            key={f.key}
-            type="button"
-            onClick={() => setFilter(f.key)}
-            aria-pressed={filter === f.key}
-            className={`rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${
-              filter === f.key
-                ? "border-indigo bg-indigo text-parchment"
-                : "border-stone/40 bg-white/60 text-ink hover:border-indigo"
-            }`}
-          >
-            {f.label}
-          </button>
-        ))}
+      {stats && stats.played > 0 ? (
+        <div className="grid grid-cols-2 gap-2 rounded-2xl border border-gold-soft bg-white/60 p-4 sm:grid-cols-4">
+          {[
+            { label: "Played", value: stats.played },
+            { label: "Day streak", value: stats.dayStreak },
+            { label: "Average score", value: stats.averageScore },
+            { label: "Best score", value: stats.bestScore },
+          ].map((s) => (
+            <div key={s.label} className="text-center">
+              <p className="font-serif-heading text-xl font-semibold text-gold">{s.value}</p>
+              <p className="text-xs uppercase tracking-wide text-stone">{s.label}</p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        !signedIn && (
+          <p className="rounded-2xl border border-gold-soft bg-white/60 p-4 text-sm text-stone-dark">
+            Log in or create an account to track your average score, best score, and day streak.
+          </p>
+        )
+      )}
+
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="grid flex-1 grid-cols-3 gap-1.5">
+          {FILTERS.map((f) => (
+            <button
+              key={f.key}
+              type="button"
+              onClick={() => setFilter(f.key)}
+              aria-pressed={filter === f.key}
+              className={`rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${
+                filter === f.key
+                  ? "border-indigo bg-indigo text-parchment"
+                  : "border-stone/40 bg-white/60 text-ink hover:border-indigo"
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+        <div className="flex gap-1 rounded-xl border border-stone/40 bg-white/60 p-1">
+          {(["list", "calendar"] as const).map((v) => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => setView(v)}
+              aria-pressed={view === v}
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium capitalize transition-colors ${
+                view === v ? "bg-indigo text-parchment" : "text-ink hover:bg-white"
+              }`}
+            >
+              {v}
+            </button>
+          ))}
+        </div>
       </div>
 
       {error && <p className="text-sm text-indigo-dim">{error}</p>}
 
-      {days && (
+      {days && view === "calendar" && (
+        <div className="rounded-2xl border border-gold-soft bg-white/60 p-4">
+          {visibleDays.length === 0 ? (
+            <p className="px-2 py-6 text-center text-stone-dark">Nothing here yet.</p>
+          ) : (
+            <div className="grid grid-cols-7 gap-2">
+              {[...visibleDays].reverse().map((d) => {
+                const played = isPlayed(d);
+                const score = scoreByDay.get(d.dayNumber);
+                return (
+                  <Link
+                    key={d.dailySetId}
+                    href={`/day/${d.date}`}
+                    title={`Day ${d.dayNumber} · ${d.date}${score != null ? ` · ${score}` : ""}`}
+                    className={`flex aspect-square flex-col items-center justify-center rounded-lg border text-xs font-medium transition-colors ${
+                      played
+                        ? "border-gold bg-gold/25 text-ink hover:bg-gold/40"
+                        : "border-stone/30 bg-white/40 text-stone-dark hover:border-indigo"
+                    }`}
+                  >
+                    <span className="font-serif-heading tabular-nums">{d.dayNumber}</span>
+                    {score != null && <span className="text-[10px] text-gold">{score}</span>}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {days && view === "list" && (
         <div className="overflow-hidden rounded-2xl border border-gold-soft bg-white/60">
           <table className="w-full border-collapse text-left">
             <thead>
