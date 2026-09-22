@@ -15,6 +15,7 @@ export async function GET() {
       .from("game_sessions")
       .select("total_score, scripture_bonus_multiplier, daily_set_id, daily_sets(day_number, date)")
       .eq("user_id", userId)
+      .eq("is_admin_preview", false)
       .not("completed_at", "is", null),
     supabase
       .from("daily_sets")

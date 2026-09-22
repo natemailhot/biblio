@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { getAuthenticatedUserId } from "@/lib/supabase/serverAuth";
+import { getAdminUserId } from "@/lib/adminAuth";
 
 const ANON_ID_COOKIE = "ascend_anon_id";
 const ANON_ID_MAX_AGE = 60 * 60 * 24 * 400; // ~13 months
@@ -16,6 +17,7 @@ const ANON_ID_MAX_AGE = 60 * 60 * 24 * 400; // ~13 months
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   const dailySetId = body?.dailySetId as string | undefined;
+  const wantsAdminPreview = body?.adminPreview === true;
 
   if (!dailySetId) {
     return NextResponse.json({ error: "dailySetId is required" }, { status: 400 });
@@ -23,6 +25,12 @@ export async function POST(req: NextRequest) {
 
   const supabase = createServiceRoleClient();
   const userId = await getAuthenticatedUserId();
+  // Only trust the client's adminPreview flag if the caller is actually an
+  // approved admin — this is what keeps a preview play (of a day that
+  // wouldn't otherwise be reachable, e.g. one not yet published) out of
+  // the player's own stats/streak/leaderboard, see the migration that adds
+  // this column for why.
+  const isAdminPreview = wantsAdminPreview && (await getAdminUserId()) !== null;
 
   const cookieStore = await cookies();
   const existingAnonId = cookieStore.get(ANON_ID_COOKIE)?.value;
@@ -52,7 +60,13 @@ export async function POST(req: NextRequest) {
     : await (async () => {
         const { data: session, error: sessionError } = await supabase
           .from("game_sessions")
-          .insert({ daily_set_id: dailySet.id, mode: "timed", user_id: userId, anon_id: anonId })
+          .insert({
+            daily_set_id: dailySet.id,
+            mode: "timed",
+            user_id: userId,
+            anon_id: anonId,
+            is_admin_preview: isAdminPreview,
+          })
           .select("id, started_at")
           .single();
 

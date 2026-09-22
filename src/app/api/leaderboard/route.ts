@@ -25,6 +25,7 @@ export async function GET(req: NextRequest) {
   let query = supabase
     .from("game_sessions")
     .select("user_id, anon_id, total_score, scripture_bonus_multiplier, daily_set_id, daily_sets!inner(day_number)")
+    .eq("is_admin_preview", false)
     .not("completed_at", "is", null)
     .order("total_score", { ascending: false })
     // Fetched well above LIMIT because an identity can have more than one

@@ -124,7 +124,7 @@ export function GameApp({ date, adminPreview }: { date?: string; adminPreview?: 
     try {
       const res = await fetchJson<{ sessionId: string; alreadyCompleted: boolean }>("/api/sessions", {
         method: "POST",
-        body: JSON.stringify({ dailySetId: dailySet.id, mode: "timed" }),
+        body: JSON.stringify({ dailySetId: dailySet.id, mode: "timed", adminPreview: adminPreview ?? false }),
       });
       setSessionId(res.sessionId);
 
