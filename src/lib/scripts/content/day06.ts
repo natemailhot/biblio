@@ -161,7 +161,7 @@ export const DAY_06: SeedDay = {
         },
         {
           canonical: "Cursing the Fig Tree",
-          aliases: ["fig tree"],
+          aliases: ["fig tree", "cursing fig tree", "cursing the fig tree", "jesus curses a fig tree", "curses the fig tree"],
           score: 100,
           tier: "third-heaven",
           references: [{ book: "Mark", chapterStart: 11, verseStart: 12, verseEnd: 14, display: "Mark 11:12-14" }],
@@ -249,6 +249,14 @@ export const DAY_06: SeedDay = {
           explanation: "Jesus cleanses ten men of leprosy on the road, and only one returns to give thanks.",
         },
         {
+          canonical: "Raising the Widow of Nain's Son",
+          aliases: ["widow of nain","widow of nain's son","raising the widow's son","resurrected the widows son"],
+          score: 30,
+          tier: "holy-place",
+          references: [{ book: "Luke", chapterStart: 7, verseStart: 11, verseEnd: 15, display: "Luke 7:11-15" }],
+          explanation: "Jesus raises the only son of a widow from Nain back to life during his funeral procession.",
+        },
+        {
           canonical: "Healing the Woman with the Flow of Blood",
           aliases: [
             "woman with the issue of blood",
@@ -277,7 +285,7 @@ export const DAY_06: SeedDay = {
       answers: [
         {
           canonical: "Bread",
-          aliases: [],
+          aliases: ["bread and fish", "fish and bread", "loaves and fish", "loaf and fish"],
           score: 10,
           tier: "outer-court",
           references: [{ book: "Matthew", chapterStart: 14, verseStart: 19, display: "Matthew 14:19" }],
@@ -371,6 +379,22 @@ export const DAY_06: SeedDay = {
           references: [{ book: "Matthew", chapterStart: 23, verseStart: 23, display: "Matthew 23:23" }],
           explanation: "Jesus rebukes the Pharisees for meticulously tithing mint, dill, and cumin while neglecting justice and mercy.",
         },
+        {
+          canonical: "Unleavened Bread",
+          aliases: ["unleavened bread","bread of unleavened bread","the feast of unleavened bread"],
+          score: 20,
+          tier: "bronze-altar",
+          references: [{ book: "Matthew", chapterStart: 26, verseStart: 17, display: "Matthew 26:17" }],
+          explanation: "The disciples ask Jesus where to prepare the Passover on \"the first day of unleavened bread.\"",
+        },
+        {
+          canonical: "The Last Supper",
+          aliases: ["last supper", "the lords supper"],
+          score: 10,
+          tier: "outer-court",
+          references: [{ book: "Matthew", chapterStart: 26, verseStart: 26, verseEnd: 29, display: "Matthew 26:26-29" }],
+          explanation: "Jesus shares a final Passover meal with his disciples before his arrest, instituting the bread and cup.",
+        },
       ],
     },
     {
@@ -382,7 +406,7 @@ export const DAY_06: SeedDay = {
       answers: [
         {
           canonical: "Pontius Pilate",
-          aliases: ["pilate"],
+          aliases: ["pilate", "pilot", "pontius pilot"],
           score: 10,
           tier: "outer-court",
           references: [{ book: "Matthew", chapterStart: 27, verseStart: 2, display: "Matthew 27:2" }],
@@ -503,7 +527,7 @@ export const DAY_06: SeedDay = {
         },
         {
           canonical: "Sling",
-          aliases: [],
+          aliases: ["slingshot", "sling shot", "stone", "a stone"],
           score: 10,
           tier: "outer-court",
           references: [{ book: "1 Samuel", chapterStart: 17, verseStart: 40, display: "1 Samuel 17:40" }],
@@ -535,7 +559,7 @@ export const DAY_06: SeedDay = {
         },
         {
           canonical: "Jawbone of a Donkey",
-          aliases: ["jawbone", "donkey jawbone"],
+          aliases: ["jawbone", "donkey jawbone", "jawbone of an ass"],
           score: 60,
           tier: "veil",
           references: [{ book: "Judges", chapterStart: 15, verseStart: 15, verseEnd: 16, display: "Judges 15:15-16" }],
@@ -578,7 +602,7 @@ export const DAY_06: SeedDay = {
         },
         {
           canonical: "Jael's Tent Peg",
-          aliases: ["tent peg and hammer","Jael's hammer"],
+          aliases: ["tent peg and hammer","Jael's hammer","stake"],
           score: 30,
           tier: "holy-place",
           references: [{ book: "Judges", chapterStart: 4, verseStart: 21, display: "Judges 4:21" }],
@@ -586,7 +610,7 @@ export const DAY_06: SeedDay = {
         },
         {
           canonical: "Ehud's Dagger",
-          aliases: ["Ehud's sword","two-edged dagger"],
+          aliases: ["Ehud's sword","two-edged dagger","dagger"],
           score: 60,
           tier: "veil",
           references: [{ book: "Judges", chapterStart: 3, verseStart: 16, display: "Judges 3:16" }],
