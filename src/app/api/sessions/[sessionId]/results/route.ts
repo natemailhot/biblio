@@ -44,7 +44,7 @@ export async function GET(
     supabase
       .from("submitted_answers")
       .select(
-        "challenge_id, raw_input, result, matched_answer_id, submitted_at_ms, score, tier, canonical_answer, explanation, references, is_daily_gem"
+        "id, challenge_id, raw_input, result, matched_answer_id, submitted_at_ms, score, tier, canonical_answer, explanation, references, is_daily_gem"
       )
       .eq("session_id", sessionId)
       .order("submitted_at_ms", { ascending: true }),
@@ -111,6 +111,7 @@ export async function GET(
       references: relevant?.references ?? [],
       isDailyGem: relevant?.is_daily_gem ?? false,
       guessCount,
+      attempts: attempts.filter((a) => a.raw_input.trim()).map((a) => ({ id: a.id, rawInput: a.raw_input })),
       allAnswers: (answerRows ?? []).map((a) => ({
         canonicalAnswer: a.canonical_answer,
         score: a.score,

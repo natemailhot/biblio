@@ -20,6 +20,7 @@ export async function POST(
   const { sessionId, challengeId } = await params;
   const body = await req.json().catch(() => null);
   const playerNote = (body?.playerNote as string | undefined)?.trim().slice(0, MAX_NOTE_LENGTH) || null;
+  const requestedSubmittedAnswerId = body?.submittedAnswerId as string | undefined;
 
   const supabase = createServiceRoleClient();
 
@@ -41,9 +42,6 @@ export async function POST(
     return NextResponse.json({ error: "Question not found in this session" }, { status: 404 });
   }
 
-  // The literal last row can be an empty timeout skip even when the player
-  // made several real guesses before time ran out — find their last
-  // non-empty guess, not just the last row.
   const { data: attempts } = await supabase
     .from("submitted_answers")
     .select("id, raw_input")
@@ -51,10 +49,17 @@ export async function POST(
     .eq("challenge_id", challengeId)
     .order("submitted_at_ms", { ascending: false });
 
-  const lastAttempt = (attempts ?? []).find((a) => a.raw_input?.trim());
-  const rawInput = lastAttempt?.raw_input?.trim();
-  if (!lastAttempt || !rawInput) {
-    return NextResponse.json({ error: "No guess found for this question" }, { status: 400 });
+  // A specific guess to protest (the player can flag any of their attempts
+  // on this question, not just the last one) — falls back to the last
+  // non-empty guess if none was specified. Either way, the literal last row
+  // can be an empty timeout skip even when the player made several real
+  // guesses before time ran out, so that's never used as the fallback.
+  const targetAttempt = requestedSubmittedAnswerId
+    ? (attempts ?? []).find((a) => a.id === requestedSubmittedAnswerId)
+    : (attempts ?? []).find((a) => a.raw_input?.trim());
+  const rawInput = targetAttempt?.raw_input?.trim();
+  if (!targetAttempt || !rawInput) {
+    return NextResponse.json({ error: "No matching guess found for this question" }, { status: 400 });
   }
 
   const { data: answerRows } = await supabase
@@ -94,7 +99,7 @@ export async function POST(
   const { error: insertError } = await supabase.from("answer_protests").insert({
     session_id: sessionId,
     challenge_id: challengeId,
-    submitted_answer_id: lastAttempt.id,
+    submitted_answer_id: targetAttempt.id,
     raw_input: rawInput,
     player_note: playerNote,
     diagnostic,

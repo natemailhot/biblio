@@ -84,6 +84,7 @@ export type StartQuestionResponse = {
 };
 
 export type SubmitQuestionAnswerResponse = {
+  submittedAnswerId: string;
   result: SubmittedAnswerResult;
   score: number;
   canonicalAnswer?: string;
@@ -92,6 +93,14 @@ export type SubmitQuestionAnswerResponse = {
   // A close-but-not-exact guess: never auto-scored, only offered for the
   // player to explicitly confirm (resubmitting the suggested text).
   suggestion?: string;
+};
+
+// One of a player's guesses on a question, kept for the "protest any of my
+// guesses, not just the last one" flow — populated both live (AscentScreen)
+// and after the fact (ResultsScreen, from the results route).
+export type QuestionAttempt = {
+  id: string;
+  rawInput: string;
 };
 
 export type SubmitBonusRequest =
@@ -145,6 +154,7 @@ export type QuestionResult = {
   isDailyGem: boolean;
   guessCount: number;
   allAnswers: RankedAnswer[];
+  attempts: QuestionAttempt[];
 };
 
 export type SessionResults = {

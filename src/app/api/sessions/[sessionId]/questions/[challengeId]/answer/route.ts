@@ -77,7 +77,7 @@ export async function POST(
   }
 
   const submittedAtMs = Date.now();
-  let response: SubmitQuestionAnswerResponse;
+  let response: Omit<SubmitQuestionAnswerResponse, "submittedAnswerId">;
   let matchedAnswerId: string | null = null;
   let matchedExplanation: string | null = null;
   let matchedReferences: ChallengeAnswer["references"] | null = null;
@@ -146,35 +146,41 @@ export async function POST(
     }
   }
 
-  const { error: insertError } = await supabase.from("submitted_answers").insert({
-    session_id: sessionId,
-    challenge_id: challengeId,
-    slot: challenge.slot,
-    answer_set_version: challenge.answer_set_version,
-    raw_input: rawInput,
-    normalized_input: normalizedInput,
-    submitted_at_ms: submittedAtMs,
-    matched_answer_id: matchedAnswerId,
-    result: response.result,
-    // Snapshot the scored outcome so results stay correct even if this
-    // question's answer set is later edited/reversioned.
-    score: response.result === "accepted" ? response.score : null,
-    tier: response.result === "accepted" ? response.tier : null,
-    canonical_answer: response.result === "accepted" ? response.canonicalAnswer : null,
-    explanation: matchedExplanation,
-    references: matchedReferences,
-    // "Daily Gem" is any answer scoring 100 — a question may have zero, one,
-    // or a couple, depending on whether it genuinely has a standout
-    // rarest/most-surprising answer.
-    is_daily_gem: matchedAnswerId !== null && response.score === 100,
-  });
+  const { data: insertedRow, error: insertError } = await supabase
+    .from("submitted_answers")
+    .insert({
+      session_id: sessionId,
+      challenge_id: challengeId,
+      slot: challenge.slot,
+      answer_set_version: challenge.answer_set_version,
+      raw_input: rawInput,
+      normalized_input: normalizedInput,
+      submitted_at_ms: submittedAtMs,
+      matched_answer_id: matchedAnswerId,
+      result: response.result,
+      // Snapshot the scored outcome so results stay correct even if this
+      // question's answer set is later edited/reversioned.
+      score: response.result === "accepted" ? response.score : null,
+      tier: response.result === "accepted" ? response.tier : null,
+      canonical_answer: response.result === "accepted" ? response.canonicalAnswer : null,
+      explanation: matchedExplanation,
+      references: matchedReferences,
+      // "Daily Gem" is any answer scoring 100 — a question may have zero, one,
+      // or a couple, depending on whether it genuinely has a standout
+      // rarest/most-surprising answer.
+      is_daily_gem: matchedAnswerId !== null && response.score === 100,
+    })
+    .select("id")
+    .single();
 
-  if (insertError) {
-    if (insertError.code === "23505") {
+  if (insertError || !insertedRow) {
+    if (insertError?.code === "23505") {
       return NextResponse.json({ error: "This question was already answered" }, { status: 409 });
     }
     return NextResponse.json({ error: "Could not record answer" }, { status: 500 });
   }
+
+  const finalResponse: SubmitQuestionAnswerResponse = { ...response, submittedAnswerId: insertedRow.id };
 
   if (response.result === "accepted") {
     await supabase
@@ -186,5 +192,5 @@ export async function POST(
       .eq("id", sessionId);
   }
 
-  return NextResponse.json(response);
+  return NextResponse.json(finalResponse);
 }

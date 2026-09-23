@@ -4,7 +4,14 @@ import { useEffect, useRef, useState } from "react";
 import { fetchJson } from "@/lib/fetchJson";
 import { TierBadge } from "./TierBadge";
 import { AngelBurst } from "./AngelBurst";
-import type { AnswerTier, DailyQuestionSummary, DailySetSummary, SubmitQuestionAnswerResponse } from "@/lib/types";
+import { ProtestPanel } from "./ProtestPanel";
+import type {
+  AnswerTier,
+  DailyQuestionSummary,
+  DailySetSummary,
+  QuestionAttempt,
+  SubmitQuestionAnswerResponse,
+} from "@/lib/types";
 
 type Feedback = {
   tone: "accepted" | "invalid";
@@ -37,7 +44,7 @@ function QuestionRound({
   const [whatCountsOpen, setWhatCountsOpen] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [finalReveal, setFinalReveal] = useState<Feedback | null>(null);
-  const [triedGuesses, setTriedGuesses] = useState<string[]>([]);
+  const [triedGuesses, setTriedGuesses] = useState<QuestionAttempt[]>([]);
   const [busy, setBusy] = useState(false);
   const [ascending, setAscending] = useState(false);
   const lockedRef = useRef(false);
@@ -67,9 +74,10 @@ function QuestionRound({
         setFinalReveal({ tone: "accepted", message: res.message, tier: res.tier });
       } else if (isTimeout) {
         lockedRef.current = true;
+        if (rawInput.trim()) setTriedGuesses((g) => [...g, { id: res.submittedAnswerId, rawInput }]);
         setFinalReveal({ tone: "invalid", message: "Time's up — no correct guess." });
       } else {
-        setTriedGuesses((g) => [...g, rawInput]);
+        setTriedGuesses((g) => [...g, { id: res.submittedAnswerId, rawInput }]);
         setFeedback({ tone: "invalid", message: res.message, suggestion: res.suggestion });
         setInput("");
         inputRef.current?.focus();
@@ -201,21 +209,26 @@ function QuestionRound({
         </div>
 
         {triedGuesses.length > 0 && !finalReveal && (
-          <p className="text-xs text-stone">Already tried: {triedGuesses.join(", ")}</p>
+          <p className="text-xs text-stone">Already tried: {triedGuesses.map((g) => g.rawInput).join(", ")}</p>
         )}
 
         {finalReveal && (
-          <button
-            type="button"
-            onClick={handleAscend}
-            disabled={ascending}
-            className="animate-rise-in flex w-full items-center justify-center gap-2 rounded-full bg-indigo px-6 py-4 text-lg font-medium text-parchment transition-colors hover:bg-indigo-dim disabled:opacity-70"
-          >
-            <span className="animate-arrow-bob" aria-hidden="true">
-              ⬆️
-            </span>
-            Ascend
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={handleAscend}
+              disabled={ascending}
+              className="animate-rise-in flex w-full items-center justify-center gap-2 rounded-full bg-indigo px-6 py-4 text-lg font-medium text-parchment transition-colors hover:bg-indigo-dim disabled:opacity-70"
+            >
+              <span className="animate-arrow-bob" aria-hidden="true">
+                ⬆️
+              </span>
+              Ascend
+            </button>
+            {finalReveal.tone === "invalid" && triedGuesses.length > 0 && (
+              <ProtestPanel sessionId={sessionId} challengeId={question.id} attempts={triedGuesses} slot={question.slot} />
+            )}
+          </>
         )}
 
         <div className="mt-auto flex items-center justify-between rounded-xl border border-gold-soft bg-white/60 px-4 py-3">
