@@ -50,6 +50,7 @@ export async function POST(req: NextRequest) {
     .from("game_sessions")
     .select("id, started_at")
     .eq("daily_set_id", dailySet.id)
+    .eq("is_admin_preview", false)
     .not("completed_at", "is", null);
   priorQuery = userId ? priorQuery.eq("user_id", userId) : priorQuery.eq("anon_id", anonId);
 

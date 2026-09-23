@@ -28,6 +28,7 @@ export async function GET(req: NextRequest) {
     .from("game_sessions")
     .select("id")
     .eq("daily_set_id", dailySetId)
+    .eq("is_admin_preview", false)
     .not("completed_at", "is", null);
   query = userId ? query.eq("user_id", userId) : query.eq("anon_id", anonId!);
 
