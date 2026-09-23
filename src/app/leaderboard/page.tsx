@@ -57,7 +57,7 @@ export default function LeaderboardPage() {
       </p>
       <div>
         <h1 className="font-serif-heading text-3xl font-semibold text-ink">Leaderboard</h1>
-        <p className="mt-1 text-stone-dark">Today&apos;s top climbers.</p>
+        <p className="mt-1 text-stone-dark capitalize">{RANGE_NOUN[range]} top climbers.</p>
       </div>
 
       <div className="grid grid-cols-3 gap-2">
@@ -127,7 +127,10 @@ export default function LeaderboardPage() {
                 </span>
               </span>
               <span className="flex items-center gap-3">
-                <span className="text-xs text-stone">×{e.multiplier.toFixed(2)}</span>
+                <span className="text-xs text-stone">
+                  {range === "today" ? "×" : "avg ×"}
+                  {e.multiplier.toFixed(2)}
+                </span>
                 <span className="font-serif-heading text-lg font-semibold text-gold">{e.score}</span>
               </span>
             </li>

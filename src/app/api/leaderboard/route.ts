@@ -66,42 +66,61 @@ export async function GET(req: NextRequest) {
   // never-signed-in players still show, under a name deterministically
   // derived from their device (see deriveAnonUsername) rather than being
   // left off the board entirely.
+  //
+  // Score is the SUM of each identity's best score per distinct day in
+  // range (not a single best day) — a "today" range only ever has one
+  // qualifying day, so this naturally degenerates to that day's score
+  // there; for "week"/"all" it rewards playing consistently well over the
+  // window instead of one lucky day beating a run of solid ones. The
+  // multiplier column is the average across those same days.
   const userIds = [...new Set((rows ?? []).map((r) => r.user_id).filter((id): id is string => !!id))];
   const { data: profiles } = await supabase.from("profiles").select("id, username").in("id", userIds);
   const usernameById = new Map((profiles ?? []).map((p) => [p.id, p.username]));
 
-  const bestByUser = new Map<string, { score: number; multiplier: number }>();
-  const bestByAnon = new Map<string, { score: number; multiplier: number }>();
+  type DayBest = { score: number; multiplier: number };
+  const bestByUserDay = new Map<string, Map<number, DayBest>>();
+  const bestByAnonDay = new Map<string, Map<number, DayBest>>();
+
+  const recordDayBest = (map: Map<string, Map<number, DayBest>>, identity: string, dayNumber: number, r: (typeof rows)[number]) => {
+    const perDay = map.get(identity) ?? new Map<number, DayBest>();
+    const existing = perDay.get(dayNumber);
+    if (!existing || r.total_score > existing.score) {
+      perDay.set(dayNumber, { score: r.total_score, multiplier: r.scripture_bonus_multiplier });
+    }
+    map.set(identity, perDay);
+  };
+
   for (const r of rows ?? []) {
+    const dailySet = r.daily_sets as unknown as { day_number: number } | null;
+    if (!dailySet) continue;
     if (r.user_id) {
-      const existing = bestByUser.get(r.user_id);
-      if (!existing || r.total_score > existing.score) {
-        bestByUser.set(r.user_id, { score: r.total_score, multiplier: r.scripture_bonus_multiplier });
-      }
+      recordDayBest(bestByUserDay, r.user_id, dailySet.day_number, r);
     } else if (r.anon_id) {
       // A row can carry an anon_id even after being linked to an account
       // (it's the cookie the session started under) — only rows with no
       // user_id at all represent a real guest identity.
-      const existing = bestByAnon.get(r.anon_id);
-      if (!existing || r.total_score > existing.score) {
-        bestByAnon.set(r.anon_id, { score: r.total_score, multiplier: r.scripture_bonus_multiplier });
-      }
+      recordDayBest(bestByAnonDay, r.anon_id, dailySet.day_number, r);
     }
   }
 
-  const userEntries = [...bestByUser.entries()]
-    .map(([userId, best]) => ({
+  const summarize = (perDay: Map<number, DayBest>) => {
+    const days = [...perDay.values()];
+    const score = days.reduce((sum, d) => sum + d.score, 0);
+    const multiplier = Math.round((days.reduce((sum, d) => sum + d.multiplier, 0) / days.length) * 100) / 100;
+    return { score, multiplier };
+  };
+
+  const userEntries = [...bestByUserDay.entries()]
+    .map(([userId, perDay]) => ({
       username: usernameById.get(userId) ?? null,
-      score: best.score,
-      multiplier: best.multiplier,
+      ...summarize(perDay),
       guest: false,
     }))
     .filter((e): e is { username: string; score: number; multiplier: number; guest: boolean } => e.username !== null);
 
-  const anonEntries = [...bestByAnon.entries()].map(([anonId, best]) => ({
+  const anonEntries = [...bestByAnonDay.entries()].map(([anonId, perDay]) => ({
     username: deriveAnonUsername(anonId),
-    score: best.score,
-    multiplier: best.multiplier,
+    ...summarize(perDay),
     guest: true,
   }));
 
