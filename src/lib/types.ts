@@ -132,6 +132,7 @@ export type RankedAnswer = {
 // guesses it took, and the full answer set ranked highest score first for
 // on-demand review.
 export type QuestionResult = {
+  challengeId: string;
   slot: number;
   prompt: string;
   guess: string;

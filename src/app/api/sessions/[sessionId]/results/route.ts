@@ -94,6 +94,7 @@ export async function GET(
     // silently break if this question's content is later edited/reversioned,
     // even though the score was already recorded correctly.
     questionResults.push({
+      challengeId: question.id,
       slot: question.slot,
       prompt: question.prompt,
       guess: relevant?.raw_input ?? "",

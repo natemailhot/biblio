@@ -38,12 +38,35 @@ function AnswerRow({ a }: { a: RankedAnswer }) {
   );
 }
 
-function QuestionCard({ q }: { q: QuestionResult }) {
+function QuestionCard({ q, sessionId }: { q: QuestionResult; sessionId?: string }) {
   const hit = q.result === "accepted";
   const [open, setOpen] = useState(false);
   const [catholicOpen, setCatholicOpen] = useState(false);
+  const [protestOpen, setProtestOpen] = useState(false);
+  const [protestNote, setProtestNote] = useState("");
+  const [protestSubmitting, setProtestSubmitting] = useState(false);
+  const [protestSent, setProtestSent] = useState(false);
+  const [protestError, setProtestError] = useState<string | null>(null);
   const mainAnswers = q.allAnswers.filter((a) => !a.isCatholicOnly);
   const catholicAnswers = q.allAnswers.filter((a) => a.isCatholicOnly);
+
+  const submitProtest = async () => {
+    if (!sessionId || protestSubmitting) return;
+    setProtestSubmitting(true);
+    setProtestError(null);
+    try {
+      await fetchJson(`/api/sessions/${sessionId}/questions/${q.challengeId}/protest`, {
+        method: "POST",
+        body: JSON.stringify({ playerNote: protestNote.trim() || undefined }),
+      });
+      setProtestSent(true);
+      track("Answer Protested", { slot: q.slot });
+    } catch {
+      setProtestError("Something went wrong — try again.");
+    } finally {
+      setProtestSubmitting(false);
+    }
+  };
 
   return (
     <li className="rounded-lg border border-stone/30 bg-white/60 p-4">
@@ -110,6 +133,45 @@ function QuestionCard({ q }: { q: QuestionResult }) {
                 </ul>
               )}
             </div>
+          )}
+        </div>
+      )}
+
+      {!hit && sessionId && (
+        <div className="mt-3 border-t border-stone/20 pt-3">
+          {protestSent ? (
+            <p className="text-xs text-olive">Thanks — this question&apos;s been flagged for review.</p>
+          ) : protestOpen ? (
+            <div className="animate-rise-in flex flex-col gap-2">
+              <label htmlFor={`protest-note-${q.slot}`} className="text-xs text-stone-dark">
+                Why do you think &quot;{q.guess.trim() || "your answer"}&quot; should count? (optional)
+              </label>
+              <textarea
+                id={`protest-note-${q.slot}`}
+                value={protestNote}
+                onChange={(e) => setProtestNote(e.target.value)}
+                rows={2}
+                maxLength={1000}
+                className="w-full rounded-lg border border-stone/40 bg-white px-3 py-2 text-sm text-ink focus:border-indigo"
+              />
+              {protestError && <p className="text-xs text-indigo-dim">{protestError}</p>}
+              <button
+                type="button"
+                onClick={submitProtest}
+                disabled={protestSubmitting}
+                className="w-fit rounded-full border border-indigo px-3 py-1 text-xs font-medium text-indigo hover:bg-indigo hover:text-parchment disabled:opacity-50"
+              >
+                {protestSubmitting ? "Sending…" : "Submit protest"}
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setProtestOpen(true)}
+              className="text-xs font-medium text-indigo underline decoration-gold-soft underline-offset-4"
+            >
+              Think you got this one right? Protest this answer →
+            </button>
           )}
         </div>
       )}
@@ -381,7 +443,7 @@ export function ResultsScreen({
         <h3 className="font-serif-heading text-lg font-semibold text-ink">Your climb</h3>
         <ul className="mt-3 flex flex-col gap-2">
           {results.questionResults.map((q) => (
-            <QuestionCard key={q.slot} q={q} />
+            <QuestionCard key={q.slot} q={q} sessionId={sessionId} />
           ))}
         </ul>
       </div>

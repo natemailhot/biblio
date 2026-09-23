@@ -18,17 +18,23 @@ export default async function AdminPage() {
 
   const supabase = createServiceRoleClient();
   const today = new Date().toLocaleDateString("en-CA");
-  const { data: upcoming } = await supabase
-    .from("daily_sets")
-    .select("id, day_number, date, status")
-    .gte("date", today)
-    .order("date", { ascending: true });
+  const [{ data: upcoming }, { count: openProtests }] = await Promise.all([
+    supabase.from("daily_sets").select("id, day_number, date, status").gte("date", today).order("date", { ascending: true }),
+    supabase.from("answer_protests").select("id", { count: "exact", head: true }).eq("status", "open"),
+  ]);
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-6 py-12">
       <p className="font-serif-heading text-sm uppercase tracking-[0.2em] text-gold">
         Ascend {BRAND_EMOJI} · Admin
       </p>
+      <Link
+        href="/admin/protests"
+        className="rounded-2xl border border-gold-soft bg-white/60 p-4 text-sm font-medium text-indigo underline decoration-gold-soft underline-offset-4"
+      >
+        {openProtests ?? 0} open protested answer{openProtests === 1 ? "" : "s"} →
+      </Link>
+
       <div>
         <h1 className="font-serif-heading text-3xl font-semibold text-ink">Upcoming days</h1>
         <p className="mt-1 text-stone-dark">Preview-play or review answers for today and days not yet live.</p>
