@@ -73,8 +73,8 @@ export const DAY_10: SeedDay = {
         {
           canonical: "Puah",
           aliases: [],
-          score: 85,
-          tier: "holy-of-holies",
+          score: 100,
+          tier: "third-heaven",
           references: [{ book: "Exodus", chapterStart: 1, verseStart: 15, display: "Exodus 1:15" }],
           explanation: "Puah, one of two Hebrew midwives, defies Pharaoh's order to kill Hebrew baby boys.",
         },

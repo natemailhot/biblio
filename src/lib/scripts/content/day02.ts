@@ -206,6 +206,14 @@ export const DAY_02: SeedDay = {
           references: [{ book: "Job", chapterStart: 4, verseStart: 12, verseEnd: 16, display: "Job 4:12-16" }],
           explanation: "Eliphaz the Temanite describes a spirit gliding past his face in a vision during the night.",
         },
+        {
+          canonical: "Moses",
+          aliases: ["burning bush"],
+          score: 10,
+          tier: "outer-court",
+          references: [{ book: "Exodus", chapterStart: 3, verseStart: 2, verseEnd: 4, display: "Exodus 3:2-4" }],
+          explanation: "God appears to Moses in a flame of fire from within a bush — a sight Stephen's speech in Acts 7:30-31 explicitly calls a vision.",
+        },
       ],
     },
     {

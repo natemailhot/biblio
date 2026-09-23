@@ -114,7 +114,7 @@ export const DAY_04: SeedDay = {
         },
         {
           canonical: "Matthias",
-          aliases: [],
+          aliases: ["mattias"],
           score: 85,
           tier: "holy-of-holies",
           references: [{ book: "Acts", chapterStart: 1, verseStart: 23, verseEnd: 26, display: "Acts 1:23-26" }],
@@ -349,8 +349,8 @@ export const DAY_04: SeedDay = {
         {
           canonical: "Chalcedony",
           aliases: [],
-          score: 100,
-          tier: "third-heaven",
+          score: 85,
+          tier: "holy-of-holies",
           references: [{ book: "Revelation", chapterStart: 21, verseStart: 19, display: "Revelation 21:19" }],
           explanation: "Chalcedony is named as the third foundation stone of the New Jerusalem.",
         },

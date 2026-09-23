@@ -295,8 +295,8 @@ export const DAY_01: SeedDay = {
         {
           canonical: "Jair",
           aliases: [],
-          score: 100,
-          tier: "third-heaven",
+          score: 85,
+          tier: "holy-of-holies",
           references: [{ book: "Judges", chapterStart: 10, verseStart: 3, verseEnd: 5, display: "Judges 10:3-5" }],
           explanation:
             "Jair judged Israel 22 years; his thirty sons rode thirty donkeys and held thirty towns.",
@@ -401,16 +401,16 @@ export const DAY_01: SeedDay = {
         {
           canonical: "Susanna",
           aliases: [],
-          score: 85,
-          tier: "holy-of-holies",
+          score: 100,
+          tier: "third-heaven",
           references: [{ book: "Luke", chapterStart: 8, verseStart: 3, display: "Luke 8:3" }],
           explanation: "Susanna is named only once, alongside Joanna, as a supporter of Jesus' ministry.",
         },
         {
           canonical: "Herodias",
           aliases: [],
-          score: 100,
-          tier: "third-heaven",
+          score: 85,
+          tier: "holy-of-holies",
           references: [{ book: "Matthew", chapterStart: 14, verseStart: 3, verseEnd: 11, display: "Matthew 14:3-11" }],
           explanation:
             "Herodias, Herod's wife, orchestrates John the Baptist's execution through her daughter's dance.",
@@ -425,7 +425,7 @@ export const DAY_01: SeedDay = {
         },
         {
           canonical: "Rahab",
-          aliases: [],
+          aliases: ["rehab"],
           score: 85,
           tier: "holy-of-holies",
           references: [{ book: "Matthew", chapterStart: 1, verseStart: 5, display: "Matthew 1:5" }],
@@ -659,7 +659,7 @@ export const DAY_01: SeedDay = {
       answers: [
         {
           canonical: "Ark of the Covenant",
-          aliases: ["ark"],
+          aliases: ["ark", "arc"],
           score: 10,
           tier: "outer-court",
           references: [{ book: "Exodus", chapterStart: 25, verseStart: 10, verseEnd: 22, display: "Exodus 25:10-22" }],
@@ -683,7 +683,7 @@ export const DAY_01: SeedDay = {
         },
         {
           canonical: "Table of Showbread",
-          aliases: ["table of the bread of the presence", "showbread"],
+          aliases: ["table of the bread of the presence", "showbread", "table"],
           score: 20,
           tier: "bronze-altar",
           references: [{ book: "Exodus", chapterStart: 25, verseStart: 23, verseEnd: 30, display: "Exodus 25:23-30" }],
@@ -691,7 +691,7 @@ export const DAY_01: SeedDay = {
         },
         {
           canonical: "Veil",
-          aliases: ["curtain"],
+          aliases: ["curtain", "the veil"],
           score: 30,
           tier: "holy-place",
           references: [{ book: "Exodus", chapterStart: 26, verseStart: 31, verseEnd: 33, display: "Exodus 26:31-33" }],
@@ -809,6 +809,14 @@ export const DAY_01: SeedDay = {
           tier: "holy-of-holies",
           references: [{ book: "Exodus", chapterStart: 28, verseStart: 36, verseEnd: 39, display: "Exodus 28:36-39" }],
           explanation: "The high priest's turban bears a gold plate engraved 'Holy to the Lord'.",
+        },
+        {
+          canonical: "Cherubim",
+          aliases: ["cherub", "cherubs"],
+          score: 30,
+          tier: "holy-place",
+          references: [{ book: "Exodus", chapterStart: 25, verseStart: 18, verseEnd: 20, display: "Exodus 25:18-20" }],
+          explanation: "Two gold cherubim with outstretched wings face each other atop the mercy seat, and their image is also woven into the tabernacle's inner curtains.",
         },
       ],
     },

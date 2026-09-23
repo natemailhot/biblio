@@ -349,8 +349,8 @@ export const DAY_08: SeedDay = {
         {
           canonical: "Gold Plate on the Turban",
           aliases: ["gold plate", "turban plate"],
-          score: 100,
-          tier: "third-heaven",
+          score: 85,
+          tier: "holy-of-holies",
           references: [{ book: "Exodus", chapterStart: 28, verseStart: 36, display: "Exodus 28:36" }],
           explanation: "A gold plate engraved with a holy inscription is fastened to the front of the turban.",
         },
@@ -381,8 +381,8 @@ export const DAY_08: SeedDay = {
         {
           canonical: "Linen Undergarments",
           aliases: ["linen breeches","linen undergarment","priestly undergarments"],
-          score: 85,
-          tier: "holy-of-holies",
+          score: 100,
+          tier: "third-heaven",
           references: [{ book: "Exodus", chapterStart: 28, verseStart: 42, display: "Exodus 28:42" }],
           explanation: "Linen undergarments are made to cover the priests' bodies from the waist to the thigh.",
         },
@@ -421,8 +421,8 @@ export const DAY_08: SeedDay = {
         {
           canonical: "John",
           aliases: [],
-          score: 100,
-          tier: "third-heaven",
+          score: 20,
+          tier: "bronze-altar",
           references: [{ book: "Matthew", chapterStart: 4, verseStart: 21, display: "Matthew 4:21" }],
           explanation: "John is in the boat with his brother James and their father Zebedee.",
         },
@@ -525,8 +525,8 @@ export const DAY_08: SeedDay = {
         {
           canonical: "Geuel",
           aliases: [],
-          score: 100,
-          tier: "third-heaven",
+          score: 85,
+          tier: "holy-of-holies",
           references: [{ book: "Numbers", chapterStart: 13, verseStart: 15, display: "Numbers 13:15" }],
           explanation: "Geuel, representing Gad, is the last of the twelve spies named in the list.",
         },
