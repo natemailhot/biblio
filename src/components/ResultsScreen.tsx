@@ -61,8 +61,8 @@ function QuestionCard({ q, sessionId }: { q: QuestionResult; sessionId?: string 
       });
       setProtestSent(true);
       track("Answer Protested", { slot: q.slot });
-    } catch {
-      setProtestError("Something went wrong — try again.");
+    } catch (err) {
+      setProtestError(err instanceof Error ? err.message : "Something went wrong — try again.");
     } finally {
       setProtestSubmitting(false);
     }
@@ -137,7 +137,7 @@ function QuestionCard({ q, sessionId }: { q: QuestionResult; sessionId?: string 
         </div>
       )}
 
-      {!hit && sessionId && (
+      {!hit && sessionId && q.guess.trim() && (
         <div className="mt-3 border-t border-stone/20 pt-3">
           {protestSent ? (
             <p className="text-xs text-olive">Thanks — this question&apos;s been flagged for review.</p>
