@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { bucketScores } from "@/lib/content/scoreBuckets";
+import { deriveAnonUsername } from "@/lib/anonName";
 
 const LIMIT = 50;
 
@@ -61,29 +62,50 @@ export async function GET(req: NextRequest) {
   }
   const histogram = bucketScores([...bestByIdentity.values()]);
 
-  // Ranked list: signed-in only.
+  // Ranked list: signed-in players show under their chosen username;
+  // never-signed-in players still show, under a name deterministically
+  // derived from their device (see deriveAnonUsername) rather than being
+  // left off the board entirely.
   const userIds = [...new Set((rows ?? []).map((r) => r.user_id).filter((id): id is string => !!id))];
   const { data: profiles } = await supabase.from("profiles").select("id, username").in("id", userIds);
   const usernameById = new Map((profiles ?? []).map((p) => [p.id, p.username]));
 
   const bestByUser = new Map<string, { score: number; multiplier: number }>();
+  const bestByAnon = new Map<string, { score: number; multiplier: number }>();
   for (const r of rows ?? []) {
-    if (!r.user_id) continue;
-    const existing = bestByUser.get(r.user_id);
-    if (!existing || r.total_score > existing.score) {
-      bestByUser.set(r.user_id, { score: r.total_score, multiplier: r.scripture_bonus_multiplier });
+    if (r.user_id) {
+      const existing = bestByUser.get(r.user_id);
+      if (!existing || r.total_score > existing.score) {
+        bestByUser.set(r.user_id, { score: r.total_score, multiplier: r.scripture_bonus_multiplier });
+      }
+    } else if (r.anon_id) {
+      // A row can carry an anon_id even after being linked to an account
+      // (it's the cookie the session started under) — only rows with no
+      // user_id at all represent a real guest identity.
+      const existing = bestByAnon.get(r.anon_id);
+      if (!existing || r.total_score > existing.score) {
+        bestByAnon.set(r.anon_id, { score: r.total_score, multiplier: r.scripture_bonus_multiplier });
+      }
     }
   }
 
-  const entries = [...bestByUser.entries()]
+  const userEntries = [...bestByUser.entries()]
     .map(([userId, best]) => ({
       username: usernameById.get(userId) ?? null,
       score: best.score,
       multiplier: best.multiplier,
+      guest: false,
     }))
-    .filter((e): e is { username: string; score: number; multiplier: number } => e.username !== null)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, LIMIT);
+    .filter((e): e is { username: string; score: number; multiplier: number; guest: boolean } => e.username !== null);
+
+  const anonEntries = [...bestByAnon.entries()].map(([anonId, best]) => ({
+    username: deriveAnonUsername(anonId),
+    score: best.score,
+    multiplier: best.multiplier,
+    guest: true,
+  }));
+
+  const entries = [...userEntries, ...anonEntries].sort((a, b) => b.score - a.score).slice(0, LIMIT);
 
   return NextResponse.json({ range, entries, histogram });
 }

@@ -121,7 +121,10 @@ export default function LeaderboardPage() {
             >
               <span className="flex items-center gap-3">
                 <span className="w-6 text-right font-serif-heading text-stone-dark">{i + 1}</span>
-                <span className="font-medium text-ink">{e.username}</span>
+                <span className="font-medium text-ink">
+                  {e.username}
+                  {e.guest && <span className="ml-1.5 text-xs font-normal text-stone">guest</span>}
+                </span>
               </span>
               <span className="flex items-center gap-3">
                 <span className="text-xs text-stone">×{e.multiplier.toFixed(2)}</span>

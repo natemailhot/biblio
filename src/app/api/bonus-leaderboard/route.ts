@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { bucketScores, BONUS_SCORE_BUCKETS } from "@/lib/content/scoreBuckets";
+import { deriveAnonUsername } from "@/lib/anonName";
 
 const LIMIT = 50;
 
@@ -58,20 +59,29 @@ export async function GET(req: NextRequest) {
   const usernameById = new Map((profiles ?? []).map((p) => [p.id, p.username]));
 
   const bestByUser = new Map<string, number>();
+  const bestByAnon = new Map<string, number>();
   for (const r of rows ?? []) {
-    if (!r.user_id) continue;
     const score = r.final_score ?? 0;
-    const existing = bestByUser.get(r.user_id);
-    if (existing === undefined || score > existing) {
-      bestByUser.set(r.user_id, score);
+    if (r.user_id) {
+      const existing = bestByUser.get(r.user_id);
+      if (existing === undefined || score > existing) bestByUser.set(r.user_id, score);
+    } else if (r.anon_id) {
+      const existing = bestByAnon.get(r.anon_id);
+      if (existing === undefined || score > existing) bestByAnon.set(r.anon_id, score);
     }
   }
 
-  const entries = [...bestByUser.entries()]
-    .map(([userId, score]) => ({ username: usernameById.get(userId) ?? null, score }))
-    .filter((e): e is { username: string; score: number } => e.username !== null)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, LIMIT);
+  const userEntries = [...bestByUser.entries()]
+    .map(([userId, score]) => ({ username: usernameById.get(userId) ?? null, score, guest: false }))
+    .filter((e): e is { username: string; score: number; guest: boolean } => e.username !== null);
+
+  const anonEntries = [...bestByAnon.entries()].map(([anonId, score]) => ({
+    username: deriveAnonUsername(anonId),
+    score,
+    guest: true,
+  }));
+
+  const entries = [...userEntries, ...anonEntries].sort((a, b) => b.score - a.score).slice(0, LIMIT);
 
   return NextResponse.json({ range, entries, histogram });
 }

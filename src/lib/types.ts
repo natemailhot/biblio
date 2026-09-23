@@ -207,6 +207,9 @@ export type LeaderboardEntry = {
   username: string;
   score: number;
   multiplier: number;
+  // True for a randomly-named guest entry (never signed in) — the name is
+  // derived deterministically from their device, not chosen by them.
+  guest: boolean;
 };
 
 export type ScoreHistogramBucket = {
@@ -266,6 +269,7 @@ export type SubmitBonusRoundAnswerResponse = {
 export type BonusLeaderboardEntry = {
   username: string;
   score: number;
+  guest: boolean;
 };
 
 export type BonusLeaderboardResponse = {
