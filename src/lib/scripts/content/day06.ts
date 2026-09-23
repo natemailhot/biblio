@@ -248,6 +248,25 @@ export const DAY_06: SeedDay = {
           references: [{ book: "Luke", chapterStart: 17, verseStart: 11, verseEnd: 19, display: "Luke 17:11-19" }],
           explanation: "Jesus cleanses ten men of leprosy on the road, and only one returns to give thanks.",
         },
+        {
+          canonical: "Healing the Woman with the Flow of Blood",
+          aliases: [
+            "woman with the issue of blood",
+            "woman touching jesus cloak",
+            "woman touching his cloak",
+            "woman who touched his garment",
+            "touching the hem of his garment",
+            "bleeding woman",
+            "hemorrhaging woman",
+            "woman with the flow of blood",
+            "issue of blood",
+          ],
+          score: 30,
+          tier: "holy-place",
+          references: [{ book: "Mark", chapterStart: 5, verseStart: 25, verseEnd: 34, display: "Mark 5:25-34" }],
+          explanation:
+            "A woman who had suffered bleeding for twelve years is healed the moment she touches the fringe of Jesus' cloak in faith.",
+        },
       ],
     },
     {
