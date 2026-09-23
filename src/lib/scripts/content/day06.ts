@@ -161,7 +161,7 @@ export const DAY_06: SeedDay = {
         },
         {
           canonical: "Cursing the Fig Tree",
-          aliases: ["fig tree", "cursing fig tree", "cursing the fig tree", "jesus curses a fig tree", "curses the fig tree"],
+          aliases: ["fig tree", "fig", "cursing fig tree", "cursing the fig tree", "jesus curses a fig tree", "curses the fig tree"],
           score: 100,
           tier: "third-heaven",
           references: [{ book: "Mark", chapterStart: 11, verseStart: 12, verseEnd: 14, display: "Mark 11:12-14" }],
