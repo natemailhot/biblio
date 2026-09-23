@@ -41,15 +41,17 @@ export async function POST(
     return NextResponse.json({ error: "Question not found in this session" }, { status: 404 });
   }
 
-  const { data: lastAttempt } = await supabase
+  // The literal last row can be an empty timeout skip even when the player
+  // made several real guesses before time ran out — find their last
+  // non-empty guess, not just the last row.
+  const { data: attempts } = await supabase
     .from("submitted_answers")
     .select("id, raw_input")
     .eq("session_id", sessionId)
     .eq("challenge_id", challengeId)
-    .order("submitted_at_ms", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .order("submitted_at_ms", { ascending: false });
 
+  const lastAttempt = (attempts ?? []).find((a) => a.raw_input?.trim());
   const rawInput = lastAttempt?.raw_input?.trim();
   if (!lastAttempt || !rawInput) {
     return NextResponse.json({ error: "No guess found for this question" }, { status: 400 });

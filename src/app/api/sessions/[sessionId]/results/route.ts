@@ -76,7 +76,12 @@ export async function GET(
   for (const question of questions) {
     const attempts = submissionsByChallenge.get(question.id) ?? [];
     const accepted = attempts.find((a) => a.result === "accepted");
-    const lastAttempt = attempts[attempts.length - 1];
+    // The literal last row can be an empty timeout skip even when the
+    // player made several real guesses before time ran out — prefer their
+    // last non-empty guess so "Last guess" (and the protest flow, which
+    // reads off this same value) reflects what they actually typed.
+    const lastRealAttempt = [...attempts].reverse().find((a) => a.raw_input.trim());
+    const lastAttempt = lastRealAttempt ?? attempts[attempts.length - 1];
     const relevant = accepted ?? lastAttempt;
     const guessCount = attempts.filter((a) => a.raw_input.trim()).length;
 
