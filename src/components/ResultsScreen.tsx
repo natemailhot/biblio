@@ -115,7 +115,7 @@ function QuestionCard({ q, sessionId }: { q: QuestionResult; sessionId?: string 
         </div>
       )}
 
-      {!hit && sessionId && (
+      {sessionId && (q.attempts.length > 1 || !hit) && (
         <div className="mt-3 border-t border-stone/20 pt-3">
           <ProtestPanel sessionId={sessionId} challengeId={q.challengeId} attempts={q.attempts} slot={q.slot} />
         </div>

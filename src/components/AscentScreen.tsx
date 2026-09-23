@@ -225,7 +225,7 @@ function QuestionRound({
               </span>
               Ascend
             </button>
-            {finalReveal.tone === "invalid" && triedGuesses.length > 0 && (
+            {triedGuesses.length > 0 && (
               <ProtestPanel sessionId={sessionId} challengeId={question.id} attempts={triedGuesses} slot={question.slot} />
             )}
           </>
