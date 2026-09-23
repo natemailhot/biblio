@@ -33,10 +33,24 @@ export function GameApp({ date, adminPreview }: { date?: string; adminPreview?: 
   // doesn't necessarily mean the bonus round is settled too — a refresh or
   // tab close mid-round shouldn't just forfeit it, so resume it instead of
   // skipping straight to results whenever it's still within its 5 minutes.
+  //
+  // `trustAdminPreview` gates whether an admin-preview session is allowed
+  // to count as "the real completion" here — false everywhere except the
+  // admin preview flow itself, so a day previewed before it went live
+  // can't permanently masquerade as a real play once it's actually today
+  // (the server-side "already completed" checks already exclude these;
+  // this covers the one path that bypasses them — a session id cached in
+  // this browser's localStorage from before).
   const revealOrResumeBonusRound = async (
     dailySetId: string,
-    completedSessionId: string
-  ): Promise<"results" | "bonusRound"> => {
+    completedSessionId: string,
+    trustAdminPreview: boolean
+  ): Promise<"results" | "bonusRound" | "stale"> => {
+    const res = await fetchJson<SessionResults>(`/api/sessions/${completedSessionId}/results`);
+    if (!trustAdminPreview && res.isAdminPreview) {
+      return "stale";
+    }
+
     setSessionId(completedSessionId);
     try {
       const bonusStatus = await fetchJson<BonusRoundStatus>(`/api/sessions/${completedSessionId}/bonus-round`);
@@ -53,7 +67,6 @@ export function GameApp({ date, adminPreview }: { date?: string; adminPreview?: 
       // Non-fatal — just means we can't tell yet; fall through to results.
     }
 
-    const res = await fetchJson<SessionResults>(`/api/sessions/${completedSessionId}/results`);
     setResults(res);
     setReturning(true);
     setPhase("results");
@@ -74,7 +87,8 @@ export function GameApp({ date, adminPreview }: { date?: string; adminPreview?: 
         setDailySet(d);
 
         const showResults = async (completedSessionId: string) => {
-          const outcome = await revealOrResumeBonusRound(d.id, completedSessionId);
+          const outcome = await revealOrResumeBonusRound(d.id, completedSessionId, adminPreview ?? false);
+          if (outcome === "stale") throw new Error("Stale admin-preview session — not a real completion");
           if (outcome === "results") track("Returning Player Viewed Results", { dayNumber: d.dayNumber });
         };
 
@@ -133,7 +147,7 @@ export function GameApp({ date, adminPreview }: { date?: string; adminPreview?: 
         // just not on this browser's localStorage — go straight to
         // results (or resume an in-progress bonus round) instead of
         // starting a round the server would reject.
-        await revealOrResumeBonusRound(dailySet.id, res.sessionId);
+        await revealOrResumeBonusRound(dailySet.id, res.sessionId, adminPreview ?? false);
         return;
       }
 

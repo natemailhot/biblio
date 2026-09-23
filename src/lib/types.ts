@@ -159,6 +159,10 @@ export type QuestionResult = {
 
 export type SessionResults = {
   dayNumber: number;
+  // Lets the client tell a stale admin-preview session apart from a real
+  // one when deciding whether to trust a cached "already completed"
+  // shortcut — see GameApp's mount flow.
+  isAdminPreview: boolean;
   totalScore: number;
   ascentScore: number;
   scriptureBonusMultiplier: number;

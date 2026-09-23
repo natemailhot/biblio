@@ -12,7 +12,7 @@ export async function GET(
   const { data: session, error: sessionError } = await supabase
     .from("game_sessions")
     .select(
-      "id, daily_set_id, ascent_score, scripture_bonus_multiplier, scripture_bonus_level, scripture_bonus_correct, total_score, completed_at"
+      "id, daily_set_id, ascent_score, scripture_bonus_multiplier, scripture_bonus_level, scripture_bonus_correct, total_score, completed_at, is_admin_preview"
     )
     .eq("id", sessionId)
     .single();
@@ -126,6 +126,7 @@ export async function GET(
 
   const results: SessionResults = {
     dayNumber: dailySet.day_number,
+    isAdminPreview: session.is_admin_preview,
     totalScore: session.total_score,
     ascentScore: session.ascent_score,
     scriptureBonusMultiplier: session.scripture_bonus_multiplier,
